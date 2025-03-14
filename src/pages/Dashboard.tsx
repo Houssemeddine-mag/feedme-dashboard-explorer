@@ -1,4 +1,3 @@
-
 import { DataTable } from "@/components/ui/data-table";
 import { StatsCard } from "@/components/ui/stats-card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 
-// Mock data
 const restaurantData = [
   { 
     id: 1, 
@@ -73,15 +71,16 @@ const restaurantData = [
   },
 ];
 
-const inventoryAlerts = [
-  { restaurant: "FeedMe Downtown", item: "Fresh Tomatoes", status: "Low Stock", level: 15 },
-  { restaurant: "FeedMe Riverside", item: "Chicken Breast", status: "Low Stock", level: 22 },
-  { restaurant: "FeedMe Harbor View", item: "Olive Oil", status: "Critical", level: 5 },
-];
-
 const staffingIssues = [
   { restaurant: "FeedMe Harbor View", position: "Chef", status: "Understaffed", priority: "High" },
   { restaurant: "FeedMe Downtown", position: "Waitstaff", status: "Shift Coverage", priority: "Medium" },
+  { restaurant: "FeedMe Riverside", position: "Manager", status: "On Leave", priority: "Medium" },
+];
+
+const operationalIssues = [
+  { restaurant: "FeedMe Harbor View", issue: "Facility Maintenance", details: "HVAC system failure", priority: "High" },
+  { restaurant: "FeedMe Business District", issue: "Director Absence", details: "Sarah Miller will be unavailable next week", priority: "Medium" },
+  { restaurant: "FeedMe Central Park", issue: "Reopening Delayed", details: "Inspection pending", priority: "High" },
 ];
 
 const Dashboard = () => {
@@ -236,43 +235,6 @@ const Dashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <AlertTriangle className="h-5 w-5 mr-2 text-yellow-500" />
-                  Inventory Alerts
-                </CardTitle>
-                <CardDescription>Current inventory issues across locations</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {inventoryAlerts.length > 0 ? (
-                  <div className="space-y-4">
-                    {inventoryAlerts.map((alert, index) => (
-                      <div key={index} className="flex flex-col space-y-2 pb-2 border-b last:border-0">
-                        <div className="flex justify-between">
-                          <span className="font-medium">{alert.restaurant}</span>
-                          <Badge 
-                            className={alert.status === "Critical" 
-                              ? "bg-red-100 text-red-800" 
-                              : "bg-yellow-100 text-yellow-800"}
-                          >
-                            {alert.status}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between text-sm text-gray-500">
-                          <span>{alert.item}</span>
-                          <span>{alert.level}% remaining</span>
-                        </div>
-                        <Progress value={alert.level} className="h-2" />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-center py-4">No inventory alerts</p>
-                )}
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
                   <Users className="h-5 w-5 mr-2 text-blue-500" />
                   Staffing Issues
                 </CardTitle>
@@ -289,8 +251,8 @@ const Dashboard = () => {
                         </div>
                         <Badge 
                           className={issue.priority === "High"
-                            ? "bg-red-100 text-red-800" 
-                            : "bg-yellow-100 text-yellow-800"}
+                            ? "bg-red-100 text-red-800 hover:bg-red-100" 
+                            : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"}
                         >
                           {issue.priority}
                         </Badge>
@@ -299,6 +261,40 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center py-4">No staffing issues</p>
+                )}
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <AlertTriangle className="h-5 w-5 mr-2 text-yellow-500" />
+                  Critical Issues
+                </CardTitle>
+                <CardDescription>Operational problems requiring immediate attention</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {operationalIssues.length > 0 ? (
+                  <div className="space-y-4">
+                    {operationalIssues.map((issue, index) => (
+                      <div key={index} className="flex justify-between pb-2 border-b last:border-0">
+                        <div>
+                          <p className="font-medium">{issue.restaurant}</p>
+                          <p className="text-sm font-medium text-gray-700">{issue.issue}</p>
+                          <p className="text-xs text-gray-500">{issue.details}</p>
+                        </div>
+                        <Badge 
+                          className={issue.priority === "High"
+                            ? "bg-red-100 text-red-800 hover:bg-red-100" 
+                            : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"}
+                        >
+                          {issue.priority}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-4">No critical issues</p>
                 )}
               </CardContent>
             </Card>

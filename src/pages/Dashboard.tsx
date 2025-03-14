@@ -4,13 +4,20 @@ import { StatsCard } from "@/components/ui/stats-card";
 import { Button } from "@/components/ui/button";
 import { 
   ActivitySquare, 
+  AlertTriangle,
+  BarChart3,
   ChefHat, 
   Clock, 
+  DollarSign,
   Mail, 
   Store,
-  FileText
+  FileText,
+  Users
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 
 // Mock data
 const restaurantData = [
@@ -20,7 +27,9 @@ const restaurantData = [
     status: "open", 
     sales: 5320,
     director: "John Smith",
-    email: "j.smith@feedme.com"
+    email: "j.smith@feedme.com",
+    staffCount: 24,
+    alertLevel: "low"
   },
   { 
     id: 2, 
@@ -28,7 +37,9 @@ const restaurantData = [
     status: "open", 
     sales: 4780,
     director: "Emma Jones",
-    email: "e.jones@feedme.com"
+    email: "e.jones@feedme.com",
+    staffCount: 18,
+    alertLevel: "medium"
   },
   { 
     id: 3, 
@@ -36,7 +47,9 @@ const restaurantData = [
     status: "closed", 
     sales: 0,
     director: "Robert Wilson",
-    email: "r.wilson@feedme.com"
+    email: "r.wilson@feedme.com",
+    staffCount: 22,
+    alertLevel: "none"
   },
   { 
     id: 4, 
@@ -44,7 +57,9 @@ const restaurantData = [
     status: "open", 
     sales: 6120,
     director: "Sarah Miller",
-    email: "s.miller@feedme.com"
+    email: "s.miller@feedme.com",
+    staffCount: 30,
+    alertLevel: "none"
   },
   { 
     id: 5, 
@@ -52,8 +67,21 @@ const restaurantData = [
     status: "closed", 
     sales: 0,
     director: "Michael Brown",
-    email: "m.brown@feedme.com"
+    email: "m.brown@feedme.com",
+    staffCount: 20,
+    alertLevel: "high"
   },
+];
+
+const inventoryAlerts = [
+  { restaurant: "FeedMe Downtown", item: "Fresh Tomatoes", status: "Low Stock", level: 15 },
+  { restaurant: "FeedMe Riverside", item: "Chicken Breast", status: "Low Stock", level: 22 },
+  { restaurant: "FeedMe Harbor View", item: "Olive Oil", status: "Critical", level: 5 },
+];
+
+const staffingIssues = [
+  { restaurant: "FeedMe Harbor View", position: "Chef", status: "Understaffed", priority: "High" },
+  { restaurant: "FeedMe Downtown", position: "Waitstaff", status: "Shift Coverage", priority: "Medium" },
 ];
 
 const Dashboard = () => {
@@ -99,10 +127,46 @@ const Dashboard = () => {
       ),
     },
     {
+      header: "Staff",
+      accessorKey: "staffCount",
+      cell: (restaurant: any) => (
+        <div className="flex items-center">
+          <Users className="h-4 w-4 mr-1 text-gray-500" />
+          <span>{restaurant.staffCount}</span>
+        </div>
+      ),
+    },
+    {
+      header: "Alert Level",
+      accessorKey: "alertLevel",
+      cell: (restaurant: any) => {
+        const alertClasses = {
+          none: "bg-gray-100 text-gray-800 hover:bg-gray-100",
+          low: "bg-blue-100 text-blue-800 hover:bg-blue-100",
+          medium: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
+          high: "bg-red-100 text-red-800 hover:bg-red-100"
+        };
+        
+        return (
+          <Badge 
+            className={alertClasses[restaurant.alertLevel as keyof typeof alertClasses]}
+          >
+            {restaurant.alertLevel !== "none" 
+              ? restaurant.alertLevel.charAt(0).toUpperCase() + restaurant.alertLevel.slice(1) 
+              : "None"}
+          </Badge>
+        );
+      },
+    },
+    {
       header: "Actions",
       accessorKey: "actions",
       cell: (restaurant: any) => (
         <div className="flex space-x-2">
+          <Button size="sm" variant="outline" className="h-8 px-2">
+            <BarChart3 className="h-4 w-4 text-gray-500" />
+            <span className="sr-only">View Stats</span>
+          </Button>
           <Button size="sm" variant="outline" className="h-8 px-2">
             <FileText className="h-4 w-4 text-gray-500" />
             <span className="sr-only">View Report</span>
@@ -141,21 +205,134 @@ const Dashboard = () => {
           description="Current hourly rate"
         />
         <StatsCard
-          title="Best Performing Restaurant"
-          value="FeedMe Business District"
-          icon={Store}
-          description="$6,120 in sales today"
+          title="Daily Revenue"
+          value="$16,220"
+          icon={DollarSign}
+          trend={{ value: 8, isPositive: true }}
+          description="Across all restaurants"
         />
       </div>
       
-      <div>
-        <h2 className="text-lg font-medium mb-4">Restaurant Status</h2>
-        <DataTable
-          data={restaurantData}
-          columns={columns}
-          filterOptions={filterOptions}
-        />
-      </div>
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="alerts">Alerts & Issues</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="overview" className="space-y-4">
+          <div>
+            <h2 className="text-lg font-medium mb-4">Restaurant Status</h2>
+            <DataTable
+              data={restaurantData}
+              columns={columns}
+              filterOptions={filterOptions}
+            />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="alerts" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <AlertTriangle className="h-5 w-5 mr-2 text-yellow-500" />
+                  Inventory Alerts
+                </CardTitle>
+                <CardDescription>Current inventory issues across locations</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {inventoryAlerts.length > 0 ? (
+                  <div className="space-y-4">
+                    {inventoryAlerts.map((alert, index) => (
+                      <div key={index} className="flex flex-col space-y-2 pb-2 border-b last:border-0">
+                        <div className="flex justify-between">
+                          <span className="font-medium">{alert.restaurant}</span>
+                          <Badge 
+                            className={alert.status === "Critical" 
+                              ? "bg-red-100 text-red-800" 
+                              : "bg-yellow-100 text-yellow-800"}
+                          >
+                            {alert.status}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-500">
+                          <span>{alert.item}</span>
+                          <span>{alert.level}% remaining</span>
+                        </div>
+                        <Progress value={alert.level} className="h-2" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-4">No inventory alerts</p>
+                )}
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Users className="h-5 w-5 mr-2 text-blue-500" />
+                  Staffing Issues
+                </CardTitle>
+                <CardDescription>Current staffing problems that need attention</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {staffingIssues.length > 0 ? (
+                  <div className="space-y-4">
+                    {staffingIssues.map((issue, index) => (
+                      <div key={index} className="flex justify-between items-center pb-2 border-b last:border-0">
+                        <div>
+                          <p className="font-medium">{issue.restaurant}</p>
+                          <p className="text-sm text-gray-500">{issue.position} - {issue.status}</p>
+                        </div>
+                        <Badge 
+                          className={issue.priority === "High"
+                            ? "bg-red-100 text-red-800" 
+                            : "bg-yellow-100 text-yellow-800"}
+                        >
+                          {issue.priority}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-4">No staffing issues</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="performance" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Restaurant Performance</CardTitle>
+              <CardDescription>Comparative analysis across locations</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {restaurantData
+                  .filter(restaurant => restaurant.status === "open")
+                  .sort((a, b) => b.sales - a.sales)
+                  .map((restaurant, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="font-medium">{restaurant.name}</span>
+                        <span className="font-medium">${restaurant.sales.toLocaleString()}</span>
+                      </div>
+                      <Progress 
+                        value={(restaurant.sales / 6120) * 100} 
+                        className="h-2" 
+                      />
+                    </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

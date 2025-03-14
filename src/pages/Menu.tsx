@@ -17,6 +17,10 @@ import {
   FileText
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import DishForm from "@/components/forms/DishForm";
+import PackForm from "@/components/forms/PackForm";
 
 // Mock data
 const dishesData = [
@@ -77,6 +81,14 @@ const ingredientsData = [
   { id: 7, name: "Sugar", supplier: "Baker's Supply", unit: "lb", price: 0.95, stock: 180 },
 ];
 
+const extrasData = [
+  { id: 1, name: "French Fries", category: "Side", price: 2.99 },
+  { id: 2, name: "Cola", category: "Beverage", price: 1.99 },
+  { id: 3, name: "Lemonade", category: "Beverage", price: 1.99 },
+  { id: 4, name: "Garlic Bread", category: "Side", price: 3.49 },
+  { id: 5, name: "Coleslaw", category: "Side", price: 2.49 },
+];
+
 const packsData = [
   { 
     id: 1, 
@@ -118,7 +130,84 @@ const packsData = [
 
 const Menu = () => {
   const [activeTab, setActiveTab] = useState("dishes");
+  const [dishes, setDishes] = useState(dishesData);
+  const [ingredients] = useState(ingredientsData);
+  const [extras] = useState(extrasData);
+  const [packs, setPacks] = useState(packsData);
+  const [isAddDishOpen, setIsAddDishOpen] = useState(false);
+  const [isAddPackOpen, setIsAddPackOpen] = useState(false);
+  const [currency, setCurrency] = useState("DZD");
   
+  const formatCurrency = (value: number) => {
+    switch(currency) {
+      case "USD":
+        return `$${value.toFixed(2)}`;
+      case "EUR":
+        return `€${value.toFixed(2)}`;
+      default:
+        return `${value.toFixed(2)} DZD`;
+    }
+  };
+
+  const handleAddDish = (data: any) => {
+    // Create a new dish with the form data
+    const newDish = {
+      id: dishes.length + 1,
+      name: data.name,
+      category: data.category,
+      price: parseFloat(data.price),
+      ingredients: data.ingredients?.length || 0,
+      popularity: "Medium",
+      recipe: "Available"
+    };
+    
+    setDishes([...dishes, newDish]);
+    setIsAddDishOpen(false);
+  };
+
+  const handleAddPack = (data: any) => {
+    // Create a new pack with the form data
+    const regularPrice = parseFloat(data.price);
+    const discountPrice = regularPrice * 0.85; // 15% discount for example
+    const savings = Math.round((1 - (discountPrice / regularPrice)) * 100) + "%";
+    
+    const newPack = {
+      id: packs.length + 1,
+      name: data.name,
+      items: (data.dishes?.length || 0) + (data.extras?.length || 0),
+      regularPrice: regularPrice,
+      discountPrice: discountPrice,
+      popularity: "Medium",
+      savings: savings
+    };
+    
+    setPacks([...packs, newPack]);
+    setIsAddPackOpen(false);
+  };
+
+  const dishFilterOptions = [
+    { label: "All Categories", value: "all" },
+    { label: "Main Course", value: "main" },
+    { label: "Appetizer", value: "appetizer" },
+    { label: "Dessert", value: "dessert" },
+    { label: "Price (High to Low)", value: "price-desc" },
+    { label: "Price (Low to High)", value: "price-asc" },
+  ];
+
+  const ingredientFilterOptions = [
+    { label: "All Suppliers", value: "all" },
+    { label: "Fresh Farms", value: "fresh-farms" },
+    { label: "Quality Meats Inc.", value: "quality-meats" },
+    { label: "Baker's Supply", value: "bakers-supply" },
+    { label: "Dairy Best", value: "dairy-best" },
+  ];
+
+  const packFilterOptions = [
+    { label: "All Packs", value: "all" },
+    { label: "By Popularity", value: "popularity" },
+    { label: "By Savings", value: "savings" },
+  ];
+
   const dishColumns = [
     {
       header: "Dish Name",
@@ -136,7 +225,7 @@ const Menu = () => {
     {
       header: "Price",
       accessorKey: "price",
-      cell: (dish: any) => `$${dish.price}`,
+      cell: (dish: any) => formatCurrency(dish.price),
     },
     {
       header: "Ingredients",
@@ -240,12 +329,12 @@ const Menu = () => {
     {
       header: "Regular Price",
       accessorKey: "regularPrice",
-      cell: (pack: any) => `$${pack.regularPrice}`,
+      cell: (pack: any) => formatCurrency(pack.regularPrice),
     },
     {
       header: "Discount Price",
       accessorKey: "discountPrice",
-      cell: (pack: any) => `$${pack.discountPrice}`,
+      cell: (pack: any) => formatCurrency(pack.discountPrice),
     },
     {
       header: "Savings",
@@ -281,29 +370,6 @@ const Menu = () => {
     },
   ];
 
-  const dishFilterOptions = [
-    { label: "All Categories", value: "all" },
-    { label: "Main Course", value: "main" },
-    { label: "Appetizer", value: "appetizer" },
-    { label: "Dessert", value: "dessert" },
-    { label: "Price (High to Low)", value: "price-desc" },
-    { label: "Price (Low to High)", value: "price-asc" },
-  ];
-
-  const ingredientFilterOptions = [
-    { label: "All Suppliers", value: "all" },
-    { label: "Fresh Farms", value: "fresh-farms" },
-    { label: "Quality Meats Inc.", value: "quality-meats" },
-    { label: "Baker's Supply", value: "bakers-supply" },
-    { label: "Dairy Best", value: "dairy-best" },
-  ];
-
-  const packFilterOptions = [
-    { label: "All Packs", value: "all" },
-    { label: "By Popularity", value: "popularity" },
-    { label: "By Savings", value: "savings" },
-  ];
-
   return (
     <div className="space-y-6">
       <div>
@@ -331,12 +397,12 @@ const Menu = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <StatsCard
                 title="Total Dishes"
-                value={dishesData.length}
+                value={dishes.length}
                 icon={Utensils}
               />
               <StatsCard
                 title="Average Price"
-                value={`$${(dishesData.reduce((sum, d) => sum + d.price, 0) / dishesData.length).toFixed(2)}`}
+                value={formatCurrency(dishes.reduce((sum, d) => sum + d.price, 0) / dishes.length)}
                 icon={DollarSign}
               />
               <StatsCard
@@ -349,16 +415,50 @@ const Menu = () => {
             <div>
               <h2 className="text-lg font-medium mb-4">Dish Management</h2>
               <DataTable
-                data={dishesData}
+                data={dishes}
                 columns={dishColumns}
                 filterOptions={dishFilterOptions}
                 actionComponent={
                   <div className="flex space-x-2">
-                    <Button variant="outline">
-                      <DollarSign className="h-4 w-4 mr-2" />
-                      Change Currency
-                    </Button>
-                    <Button variant="default" className="bg-feedme-500 hover:bg-feedme-600">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline">
+                          <DollarSign className="h-4 w-4 mr-2" />
+                          Change Currency
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-0" align="end">
+                        <div className="p-1">
+                          <Button 
+                            variant={currency === "DZD" ? "default" : "ghost"} 
+                            className="w-full justify-start font-normal" 
+                            onClick={() => setCurrency("DZD")}
+                          >
+                            DZD (Algerian Dinar)
+                          </Button>
+                          <Button 
+                            variant={currency === "USD" ? "default" : "ghost"} 
+                            className="w-full justify-start font-normal" 
+                            onClick={() => setCurrency("USD")}
+                          >
+                            USD (US Dollar)
+                          </Button>
+                          <Button 
+                            variant={currency === "EUR" ? "default" : "ghost"} 
+                            className="w-full justify-start font-normal" 
+                            onClick={() => setCurrency("EUR")}
+                          >
+                            EUR (Euro)
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    
+                    <Button 
+                      variant="default" 
+                      className="bg-feedme-500 hover:bg-feedme-600"
+                      onClick={() => setIsAddDishOpen(true)}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Dish
                     </Button>
@@ -411,7 +511,7 @@ const Menu = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <StatsCard
                 title="Total Packs"
-                value={packsData.length}
+                value={packs.length}
                 icon={PackageOpen}
               />
               <StatsCard
@@ -429,20 +529,89 @@ const Menu = () => {
             <div>
               <h2 className="text-lg font-medium mb-4">Pack Management</h2>
               <DataTable
-                data={packsData}
+                data={packs}
                 columns={packColumns}
                 filterOptions={packFilterOptions}
                 actionComponent={
-                  <Button variant="default" className="bg-feedme-500 hover:bg-feedme-600">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Pack
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline">
+                          <DollarSign className="h-4 w-4 mr-2" />
+                          Change Currency
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-0" align="end">
+                        <div className="p-1">
+                          <Button 
+                            variant={currency === "DZD" ? "default" : "ghost"} 
+                            className="w-full justify-start font-normal" 
+                            onClick={() => setCurrency("DZD")}
+                          >
+                            DZD (Algerian Dinar)
+                          </Button>
+                          <Button 
+                            variant={currency === "USD" ? "default" : "ghost"} 
+                            className="w-full justify-start font-normal" 
+                            onClick={() => setCurrency("USD")}
+                          >
+                            USD (US Dollar)
+                          </Button>
+                          <Button 
+                            variant={currency === "EUR" ? "default" : "ghost"} 
+                            className="w-full justify-start font-normal" 
+                            onClick={() => setCurrency("EUR")}
+                          >
+                            EUR (Euro)
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    
+                    <Button 
+                      variant="default" 
+                      className="bg-feedme-500 hover:bg-feedme-600"
+                      onClick={() => setIsAddPackOpen(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Pack
+                    </Button>
+                  </div>
                 }
               />
             </div>
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Add Dish Dialog */}
+      <Dialog open={isAddDishOpen} onOpenChange={setIsAddDishOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Dish</DialogTitle>
+          </DialogHeader>
+          <DishForm 
+            onSubmit={handleAddDish}
+            onCancel={() => setIsAddDishOpen(false)}
+            ingredients={ingredients}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Pack Dialog */}
+      <Dialog open={isAddPackOpen} onOpenChange={setIsAddPackOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Pack</DialogTitle>
+          </DialogHeader>
+          <PackForm 
+            onSubmit={handleAddPack}
+            onCancel={() => setIsAddPackOpen(false)}
+            dishes={dishes}
+            extras={extras}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

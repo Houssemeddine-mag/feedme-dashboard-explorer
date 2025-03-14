@@ -9,9 +9,13 @@ import {
   Trash2, 
   Plus, 
   PersonStanding, 
-  Landmark 
+  Landmark,
+  DollarSign
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import RestaurantForm from "@/components/forms/RestaurantForm";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 // Mock data
 const restaurantData = [
@@ -63,8 +67,10 @@ const restaurantData = [
 ];
 
 const Restaurants = () => {
-  const [restaurants] = useState(restaurantData);
-
+  const [restaurants, setRestaurants] = useState(restaurantData);
+  const [isAddRestaurantOpen, setIsAddRestaurantOpen] = useState(false);
+  const [currency, setCurrency] = useState("DZD");
+  
   const filterOptions = [
     { label: "All Restaurants", value: "all" },
     { label: "Open Only", value: "open" },
@@ -72,6 +78,33 @@ const Restaurants = () => {
     { label: "By Revenue (High to Low)", value: "revenue-desc" },
     { label: "By Revenue (Low to High)", value: "revenue-asc" },
   ];
+
+  const handleAddRestaurant = (data: any) => {
+    // Create a new restaurant with the form data
+    const newRestaurant = {
+      id: restaurants.length + 1,
+      name: data.name,
+      address: data.address,
+      director: "Not assigned",
+      employees: 0,
+      monthlyRevenue: 0,
+      status: "open"
+    };
+    
+    setRestaurants([...restaurants, newRestaurant]);
+    setIsAddRestaurantOpen(false);
+  };
+
+  const formatCurrency = (value: number) => {
+    switch(currency) {
+      case "USD":
+        return `$${value.toLocaleString()}`;
+      case "EUR":
+        return `€${value.toLocaleString()}`;
+      default:
+        return `${value.toLocaleString()} DZD`;
+    }
+  };
 
   const columns = [
     {
@@ -108,7 +141,7 @@ const Restaurants = () => {
     {
       header: "Monthly Revenue",
       accessorKey: "monthlyRevenue",
-      cell: (restaurant: any) => `$${restaurant.monthlyRevenue.toLocaleString()}`,
+      cell: (restaurant: any) => formatCurrency(restaurant.monthlyRevenue),
     },
     {
       header: "Actions",
@@ -150,9 +183,7 @@ const Restaurants = () => {
         />
         <StatsCard
           title="Total Monthly Revenue"
-          value={`$${restaurants
-            .reduce((sum, r) => sum + r.monthlyRevenue, 0)
-            .toLocaleString()}`}
+          value={formatCurrency(restaurants.reduce((sum, r) => sum + r.monthlyRevenue, 0))}
           icon={Landmark}
         />
       </div>
@@ -164,13 +195,66 @@ const Restaurants = () => {
           columns={columns}
           filterOptions={filterOptions}
           actionComponent={
-            <Button variant="default" className="bg-feedme-500 hover:bg-feedme-600">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Restaurant
-            </Button>
+            <div className="flex space-x-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline">
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Change Currency
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-0" align="end">
+                  <div className="p-1">
+                    <Button 
+                      variant={currency === "DZD" ? "default" : "ghost"} 
+                      className="w-full justify-start font-normal" 
+                      onClick={() => setCurrency("DZD")}
+                    >
+                      DZD (Algerian Dinar)
+                    </Button>
+                    <Button 
+                      variant={currency === "USD" ? "default" : "ghost"} 
+                      className="w-full justify-start font-normal" 
+                      onClick={() => setCurrency("USD")}
+                    >
+                      USD (US Dollar)
+                    </Button>
+                    <Button 
+                      variant={currency === "EUR" ? "default" : "ghost"} 
+                      className="w-full justify-start font-normal" 
+                      onClick={() => setCurrency("EUR")}
+                    >
+                      EUR (Euro)
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              
+              <Button 
+                variant="default" 
+                className="bg-feedme-500 hover:bg-feedme-600"
+                onClick={() => setIsAddRestaurantOpen(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Restaurant
+              </Button>
+            </div>
           }
         />
       </div>
+
+      {/* Add Restaurant Dialog */}
+      <Dialog open={isAddRestaurantOpen} onOpenChange={setIsAddRestaurantOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Add New Restaurant</DialogTitle>
+          </DialogHeader>
+          <RestaurantForm 
+            onSubmit={handleAddRestaurant}
+            onCancel={() => setIsAddRestaurantOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

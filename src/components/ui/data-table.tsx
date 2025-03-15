@@ -29,7 +29,7 @@ interface DataTableProps {
   onRowClick?: (row: any) => void;
   onEdit?: (row: any) => React.ReactNode;
   onDelete?: (id: any) => void;
-  actionComponent?: React.ReactNode; // Add this line to fix the TypeScript error
+  actionComponent?: React.ReactNode; // Keep this line to fix the TypeScript error
 }
 
 export const DataTable = ({ 
@@ -39,7 +39,7 @@ export const DataTable = ({
   onRowClick,
   onEdit,
   onDelete,
-  actionComponent // Include in the destructured props
+  actionComponent // Keep this in destructured props
 }: DataTableProps) => {
   const navigate = useNavigate();
   const [filteredData, setFilteredData] = useState(data);
@@ -126,7 +126,7 @@ export const DataTable = ({
           className="max-w-sm"
         />
         
-        <div className="flex items-center space-x-2">
+        <div className="flex space-x-2">
           {filterOptions && (
             <div className="flex space-x-2">
               {filterOptions.map((option, index) => (
@@ -144,7 +144,7 @@ export const DataTable = ({
           
           {/* Render the actionComponent if provided */}
           {actionComponent && (
-            <div className="ml-auto">
+            <div>
               {actionComponent}
             </div>
           )}

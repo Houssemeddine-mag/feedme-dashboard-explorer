@@ -29,6 +29,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useSettings } from "@/hooks/use-settings";
 
 type Notification = {
   id: number;
@@ -40,8 +41,10 @@ type Notification = {
 
 const Header = () => {
   const navigate = useNavigate();
+  const { dateFormat, timeFormat, timeZone } = useSettings();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: 1,
@@ -67,8 +70,8 @@ const Header = () => {
   ]);
 
   const currentDate = new Date();
-  const formattedDate = format(currentDate, "EEEE, MMMM d, yyyy");
-  const formattedTime = format(currentTime, "HH:mm:ss");
+  const formattedDate = format(currentDate, dateFormat || "EEEE, MMMM d, yyyy");
+  const formattedTime = format(currentTime, timeFormat || "HH:mm:ss");
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -98,11 +101,18 @@ const Header = () => {
   const handleNotificationClick = (notification: Notification) => {
     markAsRead(notification.id);
     setSelectedNotification(notification);
+    setIsNotificationOpen(true);
+  };
+
+  const handleCloseNotification = () => {
+    setIsNotificationOpen(false);
+    setSelectedNotification(null);
   };
 
   const deleteNotification = (id: number) => {
-    setNotifications(notifications.filter(notification => notification.id !== id));
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
     if (selectedNotification?.id === id) {
+      setIsNotificationOpen(false);
       setSelectedNotification(null);
     }
   };
@@ -208,7 +218,7 @@ const Header = () => {
       </div>
 
       {/* Notification Detail Dialog */}
-      <Dialog open={!!selectedNotification} onOpenChange={(open) => !open && setSelectedNotification(null)}>
+      <Dialog open={isNotificationOpen} onOpenChange={setIsNotificationOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{selectedNotification?.title}</DialogTitle>
@@ -222,7 +232,7 @@ const Header = () => {
           <DialogFooter>
             <Button 
               variant="outline" 
-              onClick={() => setSelectedNotification(null)}
+              onClick={handleCloseNotification}
             >
               Close
             </Button>

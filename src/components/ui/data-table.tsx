@@ -2,176 +2,251 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
+import { 
+  Table, 
+  TableHeader, 
+  TableBody, 
+  TableHead, 
+  TableRow, 
+  TableCell 
+} from "@/components/ui/table";
+import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Search, SlidersHorizontal } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Edit, Trash2, MoreHorizontal, Mail } from "lucide-react";
+import { DeleteDialog } from "@/components/ui/delete-dialog";
+import { useNavigate } from "react-router-dom";
+import { EditDialog } from "@/components/ui/edit-dialog";
+import { toast } from "sonner";
 
-interface DataTableProps<T> {
-  data: T[];
-  columns: {
-    header: string;
-    accessorKey: string;
-    cell?: (item: T) => React.ReactNode;
-  }[];
-  filterPlaceholder?: string;
+interface DataTableProps {
+  data: any[];
+  columns: any[];
   filterOptions?: { label: string; value: string }[];
-  onFilterChange?: (value: string) => void;
-  onSearchChange?: (value: string) => void;
-  actionComponent?: React.ReactNode;
-  onRowClick?: (item: T) => void;
-  onEdit?: (item: T) => void;
-  onDelete?: (item: T) => void;
+  onRowClick?: (row: any) => void;
+  onEdit?: (row: any) => React.ReactNode;
+  onDelete?: (id: any) => void;
+  actionComponent?: React.ReactNode; // Keep this line to fix the TypeScript error
 }
 
-export function DataTable<T>({
-  data,
-  columns,
-  filterPlaceholder = "Filter...",
-  filterOptions = [],
-  onFilterChange,
-  onSearchChange,
-  actionComponent,
+export const DataTable = ({ 
+  data, 
+  columns, 
+  filterOptions, 
   onRowClick,
   onEdit,
   onDelete,
-}: DataTableProps<T>) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [itemToDelete, setItemToDelete] = useState<T | null>(null);
+  actionComponent // Keep this in destructured props
+}: DataTableProps) => {
+  const navigate = useNavigate();
+  const [filteredData, setFilteredData] = useState(data);
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRow, setSelectedRow] = useState<any | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    if (onSearchChange) {
-      onSearchChange(value);
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter);
+    if (filter === 'all') {
+      setFilteredData(data);
+    } else {
+      setFilteredData(data.filter(item => item.status === filter));
     }
   };
 
-  const handleDeleteItem = () => {
-    if (itemToDelete && onDelete) {
-      onDelete(itemToDelete);
-      setItemToDelete(null);
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const term = event.target.value.toLowerCase();
+    setSearchTerm(term);
+    
+    if (term === '') {
+      handleFilterChange(activeFilter);
+      return;
     }
+    
+    const filtered = data.filter(item => {
+      return columns.some(column => {
+        if (column.accessorKey === 'actions') return false;
+        const value = item[column.accessorKey];
+        if (typeof value === 'string') {
+          return value.toLowerCase().includes(term);
+        }
+        return false;
+      });
+    });
+    
+    setFilteredData(filtered);
+  };
+
+  const handleEdit = (row: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedRow(row);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDelete = (row: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedRow(row);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleSendEmail = (row: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (row.id) {
+      navigate(`/emails/${row.id}`);
+    }
+  };
+
+  const confirmDelete = () => {
+    if (selectedRow && onDelete) {
+      onDelete(selectedRow.id);
+      toast.success("Item deleted successfully");
+    }
+    setIsDeleteDialogOpen(false);
+    setSelectedRow(null);
+  };
+
+  const handleSaveEdit = (data: any) => {
+    // This would typically save to an API
+    toast.success("Changes saved successfully");
+    setIsEditDialogOpen(false);
+    setSelectedRow(null);
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="relative w-full sm:w-auto">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="pl-9 w-full sm:w-[300px]"
-          />
-        </div>
+      <div className="flex flex-col sm:flex-row justify-between gap-4">
+        <Input
+          placeholder="Search..."
+          value={searchTerm}
+          onChange={handleSearch}
+          className="max-w-sm"
+        />
         
-        <div className="flex space-x-2 w-full sm:w-auto">
-          {filterOptions.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-1">
-                  <SlidersHorizontal className="h-4 w-4" />
-                  <span className="hidden sm:inline">Filter</span>
-                  <ChevronDown className="h-4 w-4" />
+        <div className="flex space-x-2">
+          {filterOptions && (
+            <div className="flex space-x-2">
+              {filterOptions.map((option, index) => (
+                <Button
+                  key={index}
+                  variant={activeFilter === option.value ? "default" : "outline"}
+                  onClick={() => handleFilterChange(option.value)}
+                  className={activeFilter === option.value ? "bg-feedme-500 hover:bg-feedme-600" : ""}
+                >
+                  {option.label}
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-white">
-                {filterOptions.map((option) => (
-                  <DropdownMenuItem
-                    key={option.value}
-                    onClick={() => onFilterChange && onFilterChange(option.value)}
-                    className="cursor-pointer"
-                  >
-                    {option.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              ))}
+            </div>
           )}
           
-          {actionComponent}
+          {/* Render the actionComponent if provided */}
+          {actionComponent && (
+            <div>
+              {actionComponent}
+            </div>
+          )}
         </div>
       </div>
       
-      <div className="rounded-md border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full data-table">
-            <thead>
-              <tr>
-                {columns.map((column) => (
-                  <th key={column.accessorKey} className="font-medium">
-                    {column.header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.length === 0 ? (
-                <tr>
-                  <td colSpan={columns.length} className="text-center py-6 text-gray-500">
-                    No data available
-                  </td>
-                </tr>
-              ) : (
-                data.map((row, index) => (
-                  <tr 
-                    key={index} 
-                    className={onRowClick ? "cursor-pointer" : ""}
-                    onClick={() => onRowClick && onRowClick(row)}
-                  >
-                    {columns.map((column) => (
-                      <td key={`${index}-${column.accessorKey}`}>
-                        {column.cell
-                          ? column.cell(row)
-                          : (row as any)[column.accessorKey]}
-                      </td>
-                    ))}
-                  </tr>
-                ))
+      <div className="border rounded-md">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {columns.map((column, index) => (
+                <TableHead key={index}>
+                  {column.header}
+                </TableHead>
+              ))}
+              {(onEdit || onDelete) && (
+                <TableHead className="text-right">Actions</TableHead>
               )}
-            </tbody>
-          </table>
-        </div>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredData.length > 0 ? (
+              filteredData.map((row, rowIndex) => (
+                <TableRow 
+                  key={rowIndex} 
+                  className={onRowClick ? "cursor-pointer hover:bg-gray-50" : ""}
+                  onClick={() => onRowClick && onRowClick(row)}
+                >
+                  {columns.map((column, colIndex) => (
+                    <TableCell key={colIndex}>
+                      {column.cell ? column.cell(row) : row[column.accessorKey]}
+                    </TableCell>
+                  ))}
+                  {(onEdit || onDelete) && (
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {onEdit && (
+                            <DropdownMenuItem onClick={(e: any) => handleEdit(row, e)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                          )}
+                          {row.email && (
+                            <DropdownMenuItem onClick={(e: any) => handleSendEmail(row, e)}>
+                              <Mail className="mr-2 h-4 w-4" />
+                              Email
+                            </DropdownMenuItem>
+                          )}
+                          {onDelete && (
+                            <DropdownMenuItem 
+                              className="text-destructive focus:text-destructive" 
+                              onClick={(e: any) => handleDelete(row, e)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length + (onEdit || onDelete ? 1 : 0)} className="text-center py-6">
+                  No results found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={!!itemToDelete}
-        onOpenChange={(open) => !open && setItemToDelete(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this item? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={handleDeleteItem}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      
+      {/* Delete confirmation dialog */}
+      <DeleteDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onDelete={confirmDelete}
+        title="Are you sure?"
+        description="This action cannot be undone. This will permanently delete this item from our servers."
+      />
+      
+      {/* Edit dialog */}
+      {isEditDialogOpen && selectedRow && onEdit && (
+        <EditDialog
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
+          onSave={handleSaveEdit}
+          title="Edit Item"
+          description="Make changes to this item here."
+        >
+          {onEdit(selectedRow)}
+        </EditDialog>
+      )}
     </div>
   );
-}
+};

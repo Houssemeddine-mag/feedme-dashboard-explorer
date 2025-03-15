@@ -29,6 +29,7 @@ interface DataTableProps {
   onRowClick?: (row: any) => void;
   onEdit?: (row: any) => React.ReactNode;
   onDelete?: (id: any) => void;
+  actionComponent?: React.ReactNode; // Add this line to fix the TypeScript error
 }
 
 export const DataTable = ({ 
@@ -37,7 +38,8 @@ export const DataTable = ({
   filterOptions, 
   onRowClick,
   onEdit,
-  onDelete
+  onDelete,
+  actionComponent // Include in the destructured props
 }: DataTableProps) => {
   const navigate = useNavigate();
   const [filteredData, setFilteredData] = useState(data);
@@ -124,20 +126,29 @@ export const DataTable = ({
           className="max-w-sm"
         />
         
-        {filterOptions && (
-          <div className="flex space-x-2">
-            {filterOptions.map((option, index) => (
-              <Button
-                key={index}
-                variant={activeFilter === option.value ? "default" : "outline"}
-                onClick={() => handleFilterChange(option.value)}
-                className={activeFilter === option.value ? "bg-feedme-500 hover:bg-feedme-600" : ""}
-              >
-                {option.label}
-              </Button>
-            ))}
-          </div>
-        )}
+        <div className="flex items-center space-x-2">
+          {filterOptions && (
+            <div className="flex space-x-2">
+              {filterOptions.map((option, index) => (
+                <Button
+                  key={index}
+                  variant={activeFilter === option.value ? "default" : "outline"}
+                  onClick={() => handleFilterChange(option.value)}
+                  className={activeFilter === option.value ? "bg-feedme-500 hover:bg-feedme-600" : ""}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          )}
+          
+          {/* Render the actionComponent if provided */}
+          {actionComponent && (
+            <div className="ml-auto">
+              {actionComponent}
+            </div>
+          )}
+        </div>
       </div>
       
       <div className="border rounded-md">

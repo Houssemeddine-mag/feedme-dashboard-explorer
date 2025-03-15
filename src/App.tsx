@@ -10,6 +10,9 @@ import Restaurants from "./pages/Restaurants";
 import GRH from "./pages/GRH";
 import Menu from "./pages/Menu";
 import NotFound from "./pages/NotFound";
+import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
+import Emails from "./pages/Emails";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +27,9 @@ const App = () => (
           <Route path="/restaurants" element={<MainLayout><Restaurants /></MainLayout>} />
           <Route path="/grh" element={<MainLayout><GRH /></MainLayout>} />
           <Route path="/menu" element={<MainLayout><Menu /></MainLayout>} />
+          <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
+          <Route path="/profile" element={<MainLayout><Profile /></MainLayout>} />
+          <Route path="/emails/:id?" element={<MainLayout><Emails /></MainLayout>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

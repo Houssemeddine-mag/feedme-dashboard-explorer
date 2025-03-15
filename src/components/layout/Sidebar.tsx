@@ -7,7 +7,9 @@ import {
   Users, 
   UtensilsCrossed,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Settings,
+  User
 } from "lucide-react";
 import { useState } from "react";
 import FeedMeLogo from "../FeedMeLogo";
@@ -76,6 +78,33 @@ const Sidebar = () => {
             {!collapsed && <span>{item.title}</span>}
           </Link>
         ))}
+      </div>
+
+      <div className="px-3 pb-4 space-y-1">
+        <Link
+          to="/settings"
+          className={cn(
+            "flex items-center py-3 px-3 rounded-md text-sm font-medium transition-colors",
+            pathname === "/settings"
+              ? "bg-feedme-500 text-white"
+              : "text-gray-300 hover:bg-gray-800 hover:text-white"
+          )}
+        >
+          <Settings className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-3")} />
+          {!collapsed && <span>Settings</span>}
+        </Link>
+        <Link
+          to="/profile"
+          className={cn(
+            "flex items-center py-3 px-3 rounded-md text-sm font-medium transition-colors",
+            pathname === "/profile"
+              ? "bg-feedme-500 text-white"
+              : "text-gray-300 hover:bg-gray-800 hover:text-white"
+          )}
+        >
+          <User className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-3")} />
+          {!collapsed && <span>Profile</span>}
+        </Link>
       </div>
 
       <div className="p-4 border-t border-gray-800">

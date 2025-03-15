@@ -9,6 +9,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, Search, SlidersHorizontal } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface DataTableProps<T> {
   data: T[];
@@ -22,6 +32,9 @@ interface DataTableProps<T> {
   onFilterChange?: (value: string) => void;
   onSearchChange?: (value: string) => void;
   actionComponent?: React.ReactNode;
+  onRowClick?: (item: T) => void;
+  onEdit?: (item: T) => void;
+  onDelete?: (item: T) => void;
 }
 
 export function DataTable<T>({
@@ -32,14 +45,25 @@ export function DataTable<T>({
   onFilterChange,
   onSearchChange,
   actionComponent,
+  onRowClick,
+  onEdit,
+  onDelete,
 }: DataTableProps<T>) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [itemToDelete, setItemToDelete] = useState<T | null>(null);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchQuery(value);
     if (onSearchChange) {
       onSearchChange(value);
+    }
+  };
+
+  const handleDeleteItem = () => {
+    if (itemToDelete && onDelete) {
+      onDelete(itemToDelete);
+      setItemToDelete(null);
     }
   };
 
@@ -105,7 +129,11 @@ export function DataTable<T>({
                 </tr>
               ) : (
                 data.map((row, index) => (
-                  <tr key={index}>
+                  <tr 
+                    key={index} 
+                    className={onRowClick ? "cursor-pointer" : ""}
+                    onClick={() => onRowClick && onRowClick(row)}
+                  >
                     {columns.map((column) => (
                       <td key={`${index}-${column.accessorKey}`}>
                         {column.cell
@@ -120,6 +148,30 @@ export function DataTable<T>({
           </table>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={!!itemToDelete}
+        onOpenChange={(open) => !open && setItemToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this item? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDeleteItem}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

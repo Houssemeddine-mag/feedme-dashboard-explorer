@@ -29,6 +29,9 @@ const formSchema = z.object({
   paymentType: z.string().min(1, "Payment type is required"),
   cardNumber: z.string().min(8, "Card number is required"),
   socialAssuranceNumber: z.string().min(5, "Social assurance number is required"),
+  profileImage: z.string().nullable().optional(),
+  idCardImage: z.string().nullable().optional(),
+  cvFile: z.string().nullable().optional(),
 });
 
 type DirectorFormValues = z.infer<typeof formSchema>;
@@ -58,6 +61,9 @@ const DirectorForm = ({ onSubmit, onCancel, restaurants }: DirectorFormProps) =>
       paymentType: "ccp",
       cardNumber: "",
       socialAssuranceNumber: "",
+      profileImage: null,
+      idCardImage: null,
+      cvFile: null,
     },
   });
 

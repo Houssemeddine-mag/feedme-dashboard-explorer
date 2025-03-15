@@ -25,6 +25,10 @@ const formSchema = z.object({
   targetAudience: z.string().min(1, "Target audience is required"),
   description: z.string().min(10, "Description should be at least 10 characters"),
   price: z.string().min(1, "Price is required"),
+  packImage: z.string().nullable().optional(),
+  dishes: z.array(z.number()).optional(),
+  extras: z.array(z.number()).optional(),
+  currency: z.string().optional(),
 });
 
 type PackFormValues = z.infer<typeof formSchema>;
@@ -50,6 +54,10 @@ const PackForm = ({ onSubmit, onCancel, dishes, extras }: PackFormProps) => {
       targetAudience: "",
       description: "",
       price: "",
+      packImage: null,
+      dishes: [],
+      extras: [],
+      currency: "DZD",
     },
   });
 

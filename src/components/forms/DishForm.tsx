@@ -25,6 +25,9 @@ const formSchema = z.object({
   price: z.string().min(1, "Price is required"),
   description: z.string().min(10, "Description should be at least 10 characters"),
   recipe: z.string().min(10, "Recipe should be at least 10 characters"),
+  dishImage: z.string().nullable().optional(),
+  ingredients: z.array(z.number()).optional(),
+  currency: z.string().optional(),
 });
 
 type DishFormValues = z.infer<typeof formSchema>;
@@ -48,6 +51,9 @@ const DishForm = ({ onSubmit, onCancel, ingredients }: DishFormProps) => {
       price: "",
       description: "",
       recipe: "",
+      dishImage: null,
+      ingredients: [],
+      currency: "DZD",
     },
   });
 

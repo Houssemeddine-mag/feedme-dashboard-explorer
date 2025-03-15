@@ -23,6 +23,7 @@ const formSchema = z.object({
   longitude: z.string().optional(),
   phoneNumber: z.string().min(5, "Phone number is required"),
   currency: z.string().min(1, "Currency is required"),
+  image: z.string().nullable().optional(),
 });
 
 type RestaurantFormValues = z.infer<typeof formSchema>;
@@ -44,6 +45,7 @@ const RestaurantForm = ({ onSubmit, onCancel }: RestaurantFormProps) => {
       longitude: "",
       phoneNumber: "",
       currency: "DZD",
+      image: null,
     },
   });
 

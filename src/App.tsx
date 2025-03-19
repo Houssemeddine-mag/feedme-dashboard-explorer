@@ -13,37 +13,27 @@ import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Emails from "./pages/Emails";
-import { SettingsProvider } from "./hooks/use-settings";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <SettingsProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<MainLayout><Index /></MainLayout>} />
-            <Route path="/restaurants" element={<MainLayout><Restaurants /></MainLayout>} />
-            <Route path="/grh" element={<MainLayout><GRH /></MainLayout>} />
-            <Route path="/menu" element={<MainLayout><Menu /></MainLayout>} />
-            <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
-            <Route path="/profile" element={<MainLayout><Profile /></MainLayout>} />
-            <Route path="/emails/:id?" element={<MainLayout><Emails /></MainLayout>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </SettingsProvider>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<MainLayout><Index /></MainLayout>} />
+          <Route path="/restaurants" element={<MainLayout><Restaurants /></MainLayout>} />
+          <Route path="/grh" element={<MainLayout><GRH /></MainLayout>} />
+          <Route path="/menu" element={<MainLayout><Menu /></MainLayout>} />
+          <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
+          <Route path="/profile" element={<MainLayout><Profile /></MainLayout>} />
+          <Route path="/emails/:id?" element={<MainLayout><Emails /></MainLayout>} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 

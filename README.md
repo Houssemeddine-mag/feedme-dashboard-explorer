@@ -1,65 +1,12 @@
-
-# FeedMe Dashboard Explorer
+# Welcome to your Lovable project
 
 ## Project info
 
 **URL**: https://lovable.dev/projects/0cf8cc0c-9613-497b-9538-abbbf7d60ea2
 
-## Frontend
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-### How to run the frontend
-
-```sh
-# Install dependencies
-npm i
-
-# Start the development server
-npm run dev
-```
-
-## Backend
-
-The backend is built with Spring Boot. To run it locally, you'll need:
-
-- Java 17 or higher
-- Maven
-
-### How to run the backend
-
-1. Clone the backend repository
-2. Navigate to the project directory
-3. Run the following commands:
-
-```sh
-# Build the project
-./mvnw clean package
-
-# Run the application
-./mvnw spring-boot:run
-```
-
-The API will be available at `http://localhost:8080/api/`
-
-## API Documentation
-
-Once the backend is running, you can access the API documentation at:
-`http://localhost:8080/swagger-ui.html`
-
-## Backend Repository
-
-The backend code is available in a separate repository. Contact the administrator for access.
-
 ## How can I edit this code?
 
-There are several ways of editing the frontend application.
+There are several ways of editing your application.
 
 **Use Lovable**
 
@@ -72,6 +19,22 @@ Changes made via Lovable will be committed automatically to this repo.
 If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
+Follow these steps:
+
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
+
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
+
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server with auto-reloading and an instant preview.
+npm run dev
+```
 
 **Edit a file directly in GitHub**
 
@@ -86,6 +49,16 @@ The only requirement is having Node.js & npm installed - [install with nvm](http
 - Select the "Codespaces" tab.
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
+
+## What technologies are used for this project?
+
+This project is built with .
+
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
 ## How can I deploy this project?
 

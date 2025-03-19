@@ -19,24 +19,8 @@ import {
   FileJson,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useSettings } from "@/hooks/use-settings";
 
 const Settings = () => {
-  const {
-    theme,
-    language,
-    timeZone,
-    dateFormat,
-    currency,
-    setTheme,
-    setLanguage,
-    setTimeZone,
-    setDateFormat,
-    setCurrency,
-    timeFormat,
-    setTimeFormat
-  } = useSettings();
-
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
     smsNotifications: false,
@@ -44,6 +28,14 @@ const Settings = () => {
     lowStockAlerts: true,
     staffScheduleUpdates: true,
     salesReports: true,
+  });
+
+  const [appearance, setAppearance] = useState({
+    theme: "light",
+    language: "en",
+    timeZone: "UTC+1",
+    dateFormat: "DD/MM/YYYY",
+    currency: "DZD",
   });
 
   const [security, setSecurity] = useState({
@@ -244,8 +236,8 @@ const Settings = () => {
                     <select 
                       id="theme"
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      value={theme}
-                      onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")}
+                      value={appearance.theme}
+                      onChange={(e) => setAppearance({ ...appearance, theme: e.target.value })}
                     >
                       <option value="light">Light</option>
                       <option value="dark">Dark</option>
@@ -257,8 +249,8 @@ const Settings = () => {
                     <select 
                       id="language"
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      value={language}
-                      onChange={(e) => setLanguage(e.target.value)}
+                      value={appearance.language}
+                      onChange={(e) => setAppearance({ ...appearance, language: e.target.value })}
                     >
                       <option value="en">English</option>
                       <option value="fr">French</option>
@@ -276,8 +268,8 @@ const Settings = () => {
                     <select 
                       id="timeZone"
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      value={timeZone}
-                      onChange={(e) => setTimeZone(e.target.value)}
+                      value={appearance.timeZone}
+                      onChange={(e) => setAppearance({ ...appearance, timeZone: e.target.value })}
                     >
                       <option value="UTC+1">UTC+1 (Algeria)</option>
                       <option value="UTC+0">UTC+0 (London)</option>
@@ -289,30 +281,12 @@ const Settings = () => {
                     <select 
                       id="dateFormat"
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      value={dateFormat}
-                      onChange={(e) => setDateFormat(e.target.value)}
+                      value={appearance.dateFormat}
+                      onChange={(e) => setAppearance({ ...appearance, dateFormat: e.target.value })}
                     >
-                      <option value="EEEE, MMMM d, yyyy">DD/MM/YYYY</option>
-                      <option value="MM/dd/yyyy">MM/DD/YYYY</option>
-                      <option value="yyyy-MM-dd">YYYY-MM-DD</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Time Format</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="timeFormat">Time Format</Label>
-                    <select 
-                      id="timeFormat"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      value={timeFormat}
-                      onChange={(e) => setTimeFormat(e.target.value)}
-                    >
-                      <option value="HH:mm:ss">24-hour (HH:MM:SS)</option>
-                      <option value="hh:mm:ss a">12-hour (HH:MM:SS AM/PM)</option>
+                      <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                      <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                      <option value="YYYY-MM-DD">YYYY-MM-DD</option>
                     </select>
                   </div>
                 </div>
@@ -326,8 +300,8 @@ const Settings = () => {
                     <select 
                       id="currency"
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      value={currency}
-                      onChange={(e) => setCurrency(e.target.value)}
+                      value={appearance.currency}
+                      onChange={(e) => setAppearance({ ...appearance, currency: e.target.value })}
                     >
                       <option value="DZD">DZD (Algerian Dinar)</option>
                       <option value="USD">USD (US Dollar)</option>

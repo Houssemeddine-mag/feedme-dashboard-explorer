@@ -43,6 +43,20 @@ const Login = () => {
       });
       navigate("/director");
       return;
+    } else if (email === "cashier" && password === "cashier") {
+      toast({
+        title: "Cashier login successful",
+        description: "Welcome to the cashier dashboard.",
+      });
+      navigate("/cashier");
+      return;
+    } else if (email === "customer" && password === "customer") {
+      toast({
+        title: "Customer login successful",
+        description: "Welcome to HoussemHouse restaurant.",
+      });
+      navigate("/customer");
+      return;
     }
 
     try {
@@ -196,6 +210,16 @@ const Login = () => {
                 <p className="text-sm text-gray-700 mb-1 font-medium">Director Access:</p>
                 <p className="text-sm text-gray-600">Username: <span className="font-mono bg-gray-100 px-2 py-1 rounded">director</span></p>
                 <p className="text-sm text-gray-600">Password: <span className="font-mono bg-gray-100 px-2 py-1 rounded">director</span></p>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                <p className="text-sm text-gray-700 mb-1 font-medium">Cashier Access:</p>
+                <p className="text-sm text-gray-600">Username: <span className="font-mono bg-gray-100 px-2 py-1 rounded">cashier</span></p>
+                <p className="text-sm text-gray-600">Password: <span className="font-mono bg-gray-100 px-2 py-1 rounded">cashier</span></p>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                <p className="text-sm text-gray-700 mb-1 font-medium">Customer Access:</p>
+                <p className="text-sm text-gray-600">Username: <span className="font-mono bg-gray-100 px-2 py-1 rounded">customer</span></p>
+                <p className="text-sm text-gray-600">Password: <span className="font-mono bg-gray-100 px-2 py-1 rounded">customer</span></p>
               </div>
             </div>
           </div>

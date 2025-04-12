@@ -10,6 +10,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Chef from "./pages/Chef";
 import Director from "./pages/Director";
+import Cashier from "./pages/Cashier";
+import Customer from "./pages/Customer";
 import Dashboard from "./pages/Dashboard";
 import Restaurants from "./pages/Restaurants";
 import GRH from "./pages/GRH";
@@ -38,6 +40,12 @@ const App = () => (
           
           {/* Director route (custom layout) */}
           <Route path="/director" element={<Director />} />
+          
+          {/* Cashier route (custom layout) */}
+          <Route path="/cashier" element={<Cashier />} />
+          
+          {/* Customer route (custom layout) */}
+          <Route path="/customer" element={<Customer />} />
           
           {/* Admin routes with MainLayout */}
           <Route path="/admin" element={<MainLayout><Dashboard /></MainLayout>} />

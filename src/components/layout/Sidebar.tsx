@@ -17,7 +17,7 @@ import FeedMeLogo from "../FeedMeLogo";
 const navItems = [
   {
     title: "Dashboard",
-    href: "/",
+    href: "/admin",
     icon: LayoutDashboard,
   },
   {
@@ -110,7 +110,7 @@ const Sidebar = () => {
       <div className="p-4 border-t border-gray-800">
         {!collapsed && (
           <div className="text-xs text-gray-400 font-medium">
-            FeedMe Admin v1.0
+            HoussemHouse Admin v1.0
           </div>
         )}
       </div>

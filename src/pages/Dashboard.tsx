@@ -1,3 +1,6 @@
+
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { StatsCard } from "@/components/ui/stats-card";
 import { Button } from "@/components/ui/button";
@@ -11,79 +14,85 @@ import {
   Mail, 
   Store,
   FileText,
-  Users
+  Users,
+  Utensils
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/components/ui/use-toast";
 
 const restaurantData = [
   { 
     id: 1, 
-    name: "FeedMe Downtown", 
+    name: "HoussemHouse Downtown", 
     status: "open", 
     sales: 5320,
     director: "John Smith",
-    email: "j.smith@feedme.com",
+    email: "j.smith@houssemhouse.com",
     staffCount: 24,
     alertLevel: "low"
   },
   { 
     id: 2, 
-    name: "FeedMe Riverside", 
+    name: "HoussemHouse Riverside", 
     status: "open", 
     sales: 4780,
     director: "Emma Jones",
-    email: "e.jones@feedme.com",
+    email: "e.jones@houssemhouse.com",
     staffCount: 18,
     alertLevel: "medium"
   },
   { 
     id: 3, 
-    name: "FeedMe Central Park", 
+    name: "HoussemHouse Central Park", 
     status: "closed", 
     sales: 0,
     director: "Robert Wilson",
-    email: "r.wilson@feedme.com",
+    email: "r.wilson@houssemhouse.com",
     staffCount: 22,
     alertLevel: "none"
   },
   { 
     id: 4, 
-    name: "FeedMe Business District", 
+    name: "HoussemHouse Business District", 
     status: "open", 
     sales: 6120,
     director: "Sarah Miller",
-    email: "s.miller@feedme.com",
+    email: "s.miller@houssemhouse.com",
     staffCount: 30,
     alertLevel: "none"
   },
   { 
     id: 5, 
-    name: "FeedMe Harbor View", 
+    name: "HoussemHouse Harbor View", 
     status: "closed", 
     sales: 0,
     director: "Michael Brown",
-    email: "m.brown@feedme.com",
+    email: "m.brown@houssemhouse.com",
     staffCount: 20,
     alertLevel: "high"
   },
 ];
 
 const staffingIssues = [
-  { restaurant: "FeedMe Harbor View", position: "Chef", status: "Understaffed", priority: "High" },
-  { restaurant: "FeedMe Downtown", position: "Waitstaff", status: "Shift Coverage", priority: "Medium" },
-  { restaurant: "FeedMe Riverside", position: "Manager", status: "On Leave", priority: "Medium" },
+  { restaurant: "HoussemHouse Harbor View", position: "Chef", status: "Understaffed", priority: "High" },
+  { restaurant: "HoussemHouse Downtown", position: "Waitstaff", status: "Shift Coverage", priority: "Medium" },
+  { restaurant: "HoussemHouse Riverside", position: "Manager", status: "On Leave", priority: "Medium" },
 ];
 
 const operationalIssues = [
-  { restaurant: "FeedMe Harbor View", issue: "Facility Maintenance", details: "HVAC system failure", priority: "High" },
-  { restaurant: "FeedMe Business District", issue: "Director Absence", details: "Sarah Miller will be unavailable next week", priority: "Medium" },
-  { restaurant: "FeedMe Central Park", issue: "Reopening Delayed", details: "Inspection pending", priority: "High" },
+  { restaurant: "HoussemHouse Harbor View", issue: "Facility Maintenance", details: "HVAC system failure", priority: "High" },
+  { restaurant: "HoussemHouse Business District", issue: "Director Absence", details: "Sarah Miller will be unavailable next week", priority: "Medium" },
+  { restaurant: "HoussemHouse Central Park", issue: "Reopening Delayed", details: "Inspection pending", priority: "High" },
 ];
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [filterValue, setFilterValue] = useState("all");
+  
   const filterOptions = [
     { label: "All Restaurants", value: "all" },
     { label: "Open Only", value: "open" },
@@ -162,15 +171,46 @@ const Dashboard = () => {
       accessorKey: "actions",
       cell: (restaurant: any) => (
         <div className="flex space-x-2">
-          <Button size="sm" variant="outline" className="h-8 px-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="h-8 px-2"
+            onClick={() => {
+              toast({
+                title: "Viewing stats",
+                description: `Viewing statistics for ${restaurant.name}`,
+              });
+            }}
+          >
             <BarChart3 className="h-4 w-4 text-gray-500" />
             <span className="sr-only">View Stats</span>
           </Button>
-          <Button size="sm" variant="outline" className="h-8 px-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="h-8 px-2"
+            onClick={() => {
+              toast({
+                title: "Viewing report",
+                description: `Viewing report for ${restaurant.name}`,
+              });
+            }}
+          >
             <FileText className="h-4 w-4 text-gray-500" />
             <span className="sr-only">View Report</span>
           </Button>
-          <Button size="sm" variant="outline" className="h-8 px-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="h-8 px-2"
+            onClick={() => {
+              toast({
+                title: "Email sent",
+                description: `Email dialog opened for ${restaurant.director} at ${restaurant.name}`,
+              });
+              navigate(`/emails?recipient=${encodeURIComponent(restaurant.email)}`);
+            }}
+          >
             <Mail className="h-4 w-4 text-gray-500" />
             <span className="sr-only">Email Director</span>
           </Button>
@@ -178,13 +218,19 @@ const Dashboard = () => {
       ),
     },
   ];
+  
+  // Filter data based on the selected filter
+  const filteredData = restaurantData.filter(restaurant => {
+    if (filterValue === "all") return true;
+    return restaurant.status === filterValue;
+  });
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="mt-1 text-gray-500">
-          Overview of your restaurant chain performance.
+          Overview of HoussemHouse restaurant chain performance.
         </p>
       </div>
       
@@ -192,7 +238,7 @@ const Dashboard = () => {
         <StatsCard
           title="Total Dishes Sold Today"
           value="1,248"
-          icon={ChefHat}
+          icon={Utensils}
           trend={{ value: 12, isPositive: true }}
           description="Compared to yesterday"
         />
@@ -223,9 +269,10 @@ const Dashboard = () => {
           <div>
             <h2 className="text-lg font-medium mb-4">Restaurant Status</h2>
             <DataTable
-              data={restaurantData}
+              data={filteredData}
               columns={columns}
               filterOptions={filterOptions}
+              onFilterChange={setFilterValue}
             />
           </div>
         </TabsContent>
@@ -249,13 +296,27 @@ const Dashboard = () => {
                           <p className="font-medium">{issue.restaurant}</p>
                           <p className="text-sm text-gray-500">{issue.position} - {issue.status}</p>
                         </div>
-                        <Badge 
-                          className={issue.priority === "High"
-                            ? "bg-red-100 text-red-800 hover:bg-red-100" 
-                            : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"}
-                        >
-                          {issue.priority}
-                        </Badge>
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            className={issue.priority === "High"
+                              ? "bg-red-100 text-red-800 hover:bg-red-100" 
+                              : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"}
+                          >
+                            {issue.priority}
+                          </Badge>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              toast({
+                                title: "Addressing issue",
+                                description: `Addressing ${issue.position} issue at ${issue.restaurant}`,
+                              });
+                            }}
+                          >
+                            View
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -283,13 +344,27 @@ const Dashboard = () => {
                           <p className="text-sm font-medium text-gray-700">{issue.issue}</p>
                           <p className="text-xs text-gray-500">{issue.details}</p>
                         </div>
-                        <Badge 
-                          className={issue.priority === "High"
-                            ? "bg-red-100 text-red-800 hover:bg-red-100" 
-                            : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"}
-                        >
-                          {issue.priority}
-                        </Badge>
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            className={issue.priority === "High"
+                              ? "bg-red-100 text-red-800 hover:bg-red-100" 
+                              : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"}
+                          >
+                            {issue.priority}
+                          </Badge>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              toast({
+                                title: "Addressing issue",
+                                description: `Addressing ${issue.issue} at ${issue.restaurant}`,
+                              });
+                            }}
+                          >
+                            Resolve
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>

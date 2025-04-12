@@ -21,6 +21,8 @@ import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +42,7 @@ type Notification = {
 
 const Header = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([
@@ -104,6 +107,33 @@ const Header = () => {
     setNotifications(notifications.filter(notification => notification.id !== id));
     if (selectedNotification?.id === id) {
       setSelectedNotification(null);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Logout failed",
+          description: error.message,
+        });
+      } else {
+        toast({
+          title: "Logged out successfully",
+          description: "You have been logged out of your account.",
+        });
+        navigate("/login");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        variant: "destructive",
+        title: "An error occurred",
+        description: "Please try again later.",
+      });
     }
   };
 
@@ -199,7 +229,7 @@ const Header = () => {
               <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer text-destructive">
+            <DropdownMenuItem className="cursor-pointer text-destructive" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
             </DropdownMenuItem>

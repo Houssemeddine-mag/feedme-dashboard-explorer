@@ -27,7 +27,7 @@ const Login = () => {
         title: "Admin login successful",
         description: "Welcome to the admin dashboard.",
       });
-      navigate("/");
+      navigate("/admin");
       return;
     } else if (email === "chef" && password === "chef") {
       toast({
@@ -62,7 +62,7 @@ const Login = () => {
           title: "Login successful",
           description: "Welcome back!",
         });
-        navigate("/");
+        navigate("/admin");
       }
     } catch (error) {
       console.error("Login error:", error);

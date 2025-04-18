@@ -7,7 +7,8 @@ import {
   Plus,
   Building,
   Send,
-  RefreshCcw
+  RefreshCcw,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,13 +51,14 @@ import { DirectorOverview } from "@/components/director/DirectorOverview";
 import { DailyDishItem } from "@/components/director/DailyDishItem";
 import { EmployeeItem } from "@/components/director/EmployeeItem";
 import { ReportItem } from "@/components/director/ReportItem";
+import { Restaurant } from "@/types/director";
 
 const DirectorPage = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, logout } = useAuth();
-  const [restaurant, setRestaurant] = useState<any>(null);
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [employees, setEmployees] = useState<any[]>([]);
   const [dishes, setDishes] = useState<any[]>([]);
   const [ingredients, setIngredients] = useState<any[]>([]);
@@ -112,21 +114,21 @@ const DirectorPage = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const { data: directorData, error: directorError } = await supabase
-          .from('directors')
-          .select('*, restaurant:restaurants(*)')
-          .eq('id', user.id)
+        const { data: restaurantData, error: restaurantError } = await supabase
+          .from('restaurants')
+          .select('*')
+          .eq('id', user.restaurant_id || '')
           .single();
 
-        if (directorError) throw directorError;
+        if (restaurantError) throw restaurantError;
         
-        if (directorData && directorData.restaurant) {
-          setRestaurant(directorData.restaurant);
+        if (restaurantData) {
+          setRestaurant(restaurantData);
 
           const { data: employeeData, error: employeeError } = await supabase
             .from('employees')
             .select('*')
-            .eq('restaurant_id', directorData.restaurant.id);
+            .eq('restaurant_id', restaurantData.id);
 
           if (employeeError) throw employeeError;
           setEmployees(employeeData || []);
@@ -135,9 +137,9 @@ const DirectorPage = () => {
             .from('dishes')
             .select(`
               *,
-              ingredients:dish_ingredients(
+              dish_ingredients(
                 id,
-                quantity_needed,
+                quantity,
                 ingredient_id
               )
             `);
@@ -156,13 +158,13 @@ const DirectorPage = () => {
             .from('daily_menus')
             .select(`
               *,
-              daily_dishes(
+              daily_menu_items(
                 id,
                 dish_id,
-                available_quantity
+                quantity
               )
             `)
-            .eq('restaurant_id', directorData.restaurant.id);
+            .eq('restaurant_id', restaurantData.id);
 
           if (menuError) throw menuError;
           setDailyMenus(menuData || []);
@@ -170,7 +172,7 @@ const DirectorPage = () => {
           const { data: reportData, error: reportError } = await supabase
             .from('reports')
             .select('*')
-            .eq('restaurant_id', directorData.restaurant.id)
+            .eq('restaurant_id', restaurantData.id)
             .order('date', { ascending: false });
 
           if (reportError) throw reportError;
@@ -179,22 +181,19 @@ const DirectorPage = () => {
           const { data: orderData, error: orderError } = await supabase
             .from('orders')
             .select('*')
-            .eq('restaurant_id', directorData.restaurant.id)
+            .eq('restaurant_id', restaurantData.id)
             .order('created_at', { ascending: false })
             .limit(5);
 
           if (orderError) throw orderError;
           setOrders(orderData || []);
 
-          const { data: iotData, error: iotError } = await supabase
-            .from('restaurants')
-            .select('oven_temperature, cooling_chamber_temperature')
-            .eq('id', directorData.restaurant.id)
-            .single();
-
-          if (!iotError && iotData) {
-            setOvenTemperature(iotData.oven_temperature || 180);
-            setCoolingTemperature(iotData.cooling_chamber_temperature || -4);
+          if ('oven_temperature' in restaurantData) {
+            setOvenTemperature(restaurantData.oven_temperature || 180);
+          }
+          
+          if ('cooling_chamber_temperature' in restaurantData) {
+            setCoolingTemperature(restaurantData.cooling_chamber_temperature || -4);
           }
         }
       } catch (error) {
@@ -230,7 +229,7 @@ const DirectorPage = () => {
         menuId = existingMenu.id;
         
         await supabase
-          .from('daily_dishes')
+          .from('daily_menu_items')
           .delete()
           .eq('daily_menu_id', menuId);
       } else {
@@ -238,7 +237,7 @@ const DirectorPage = () => {
           .from('daily_menus')
           .insert([
             { 
-              restaurant_id: restaurant.id,
+              restaurant_id: restaurant?.id,
               created_by: user?.id,
               date: selectedDate
             }
@@ -254,12 +253,12 @@ const DirectorPage = () => {
         .map(([dishId, quantity]) => ({
           daily_menu_id: menuId,
           dish_id: dishId,
-          available_quantity: quantity
+          quantity: quantity
         }));
       
       if (dishesArray.length > 0) {
         const { error: dishError } = await supabase
-          .from('daily_dishes')
+          .from('daily_menu_items')
           .insert(dishesArray);
 
         if (dishError) throw dishError;
@@ -269,13 +268,13 @@ const DirectorPage = () => {
         .from('daily_menus')
         .select(`
           *,
-          daily_dishes(
+          daily_menu_items(
             id,
             dish_id,
-            available_quantity
+            quantity
           )
         `)
-        .eq('restaurant_id', restaurant.id);
+        .eq('restaurant_id', restaurant?.id);
 
       if (refreshError) throw refreshError;
       setDailyMenus(newMenus || []);
@@ -350,7 +349,7 @@ const DirectorPage = () => {
           .from('employees')
           .insert([{
             id: userData[0].id,
-            restaurant_id: restaurant.id,
+            restaurant_id: restaurant?.id,
             first_name: employeeForm.first_name,
             last_name: employeeForm.last_name,
             role: employeeForm.role,
@@ -369,7 +368,7 @@ const DirectorPage = () => {
       const { data: refreshData, error: refreshError } = await supabase
         .from('employees')
         .select('*')
-        .eq('restaurant_id', restaurant.id);
+        .eq('restaurant_id', restaurant?.id);
 
       if (refreshError) throw refreshError;
       setEmployees(refreshData || []);
@@ -459,7 +458,7 @@ const DirectorPage = () => {
             content: reportForm.content,
             date: reportForm.date,
             employee_id: user?.id,
-            restaurant_id: restaurant.id,
+            restaurant_id: restaurant?.id,
             status: 'pending',
             sent_to_admin: false
           }]);
@@ -475,7 +474,7 @@ const DirectorPage = () => {
       const { data, error: refreshError } = await supabase
         .from('reports')
         .select('*')
-        .eq('restaurant_id', restaurant.id)
+        .eq('restaurant_id', restaurant?.id)
         .order('date', { ascending: false });
 
       if (refreshError) throw refreshError;
@@ -550,15 +549,17 @@ const DirectorPage = () => {
       const newOvenTemp = Math.floor(ovenTemperature + (Math.random() * 10 - 5));
       const newCoolingTemp = Math.round((coolingTemperature + (Math.random() * 2 - 1)) * 10) / 10;
       
-      const { error } = await supabase
-        .from('restaurants')
-        .update({
-          oven_temperature: newOvenTemp,
-          cooling_chamber_temperature: newCoolingTemp
-        })
-        .eq('id', restaurant.id);
+      if (restaurant && 'oven_temperature' in restaurant && 'cooling_chamber_temperature' in restaurant) {
+        const { error } = await supabase
+          .from('restaurants')
+          .update({
+            oven_temperature: newOvenTemp,
+            cooling_chamber_temperature: newCoolingTemp
+          })
+          .eq('id', restaurant.id);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
       
       setOvenTemperature(newOvenTemp);
       setCoolingTemperature(newCoolingTemp);
@@ -716,9 +717,9 @@ const DirectorPage = () => {
                           <CardTitle className="text-lg">{new Date(menu.date).toLocaleDateString()}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          {menu.daily_dishes && menu.daily_dishes.length > 0 ? (
+                          {menu.daily_menu_items && menu.daily_menu_items.length > 0 ? (
                             <div className="space-y-2">
-                              {menu.daily_dishes.map((dailyDish: any) => {
+                              {menu.daily_menu_items.map((dailyDish: any) => {
                                 const dish = dishes.find(d => d.id === dailyDish.dish_id);
                                 if (!dish) return null;
                                 
@@ -739,7 +740,7 @@ const DirectorPage = () => {
                                     </div>
                                     <div className="text-right">
                                       <div className="font-medium">${dish.price.toFixed(2)}</div>
-                                      <div className="text-sm text-gray-500">Qty: {dailyDish.available_quantity}</div>
+                                      <div className="text-sm text-gray-500">Qty: {dailyDish.quantity}</div>
                                     </div>
                                   </div>
                                 );
@@ -752,8 +753,8 @@ const DirectorPage = () => {
                         <CardFooter className="flex justify-end">
                           <Button variant="outline" size="sm" onClick={() => {
                             const dishQuantities: Record<string, number> = {};
-                            menu.daily_dishes.forEach((dailyDish: any) => {
-                              dishQuantities[dailyDish.dish_id] = dailyDish.available_quantity;
+                            menu.daily_menu_items.forEach((dailyDish: any) => {
+                              dishQuantities[dailyDish.dish_id] = dailyDish.quantity;
                             });
                             
                             setSelectedDishes(dishQuantities);

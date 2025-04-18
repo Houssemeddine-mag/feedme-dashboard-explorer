@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -9,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import FeedMeLogo from "@/components/FeedMeLogo";
+import { UserRole } from "@/types/database";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -22,7 +22,6 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Special demo logins - these will query the database
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -35,7 +34,6 @@ const Login = () => {
       }
 
       if (userData && userData.password_hash === password) {
-        // Set user session in localStorage
         localStorage.setItem('user', JSON.stringify(userData));
         
         toast({
@@ -44,7 +42,7 @@ const Login = () => {
         });
 
         // Redirect based on role
-        switch(userData.role) {
+        switch(userData.role as UserRole) {
           case 'admin':
             navigate("/admin");
             break;

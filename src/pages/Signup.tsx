@@ -11,9 +11,12 @@ import { useToast } from "@/components/ui/use-toast";
 import FeedMeLogo from "@/components/FeedMeLogo";
 
 const Signup = () => {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [address, setAddress] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -21,6 +24,7 @@ const Signup = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate inputs
     if (password !== confirmPassword) {
       toast({
         variant: "destructive",
@@ -29,34 +33,55 @@ const Signup = () => {
       });
       return;
     }
+
+    if (!username || !email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+      });
+      return;
+    }
     
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      // Sign up user with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            username,
+            address,
+            phone_number: phoneNumber,
+            role: 'client' // Automatically set role to client
+          }
+        }
       });
 
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Signup failed",
-          description: error.message,
-        });
-      } else {
+      if (authError) {
+        throw authError;
+      }
+
+      // If signup is successful
+      if (authData.user) {
         toast({
           title: "Account created successfully",
-          description: "Please check your email to verify your account.",
+          description: "Welcome to FeedMe! You can now log in.",
         });
         navigate("/login");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Signup error:", error);
+      
+      // More specific error handling
+      const errorMessage = error.message || "An error occurred during signup";
+      
       toast({
         variant: "destructive",
-        title: "An error occurred",
-        description: "Please try again later.",
+        title: "Signup failed",
+        description: errorMessage,
       });
     } finally {
       setLoading(false);
@@ -101,6 +126,23 @@ const Signup = () => {
         >
           <form className="space-y-6" onSubmit={handleSignup}>
             <div>
+              <Label htmlFor="username">Username</Label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-gray-400" />
+                </div>
+                <Input
+                  id="username"
+                  type="text"
+                  className="pl-10"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
               <Label htmlFor="email">Email address</Label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -115,6 +157,28 @@ const Signup = () => {
                   required
                 />
               </div>
+            </div>
+
+            <div>
+              <Label htmlFor="address">Address (Optional)</Label>
+              <Input
+                id="address"
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Enter your address"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="Enter your phone number"
+              />
             </div>
 
             <div>

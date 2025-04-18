@@ -500,6 +500,42 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string
+          id: string
+          password_hash: string
+          phone_number: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          password_hash: string
+          phone_number?: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          password_hash?: string
+          phone_number?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -508,6 +544,22 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      delivery_status:
+        | "pending"
+        | "assigned"
+        | "in_progress"
+        | "delivered"
+        | "cancelled"
+      order_status:
+        | "pending"
+        | "preparing"
+        | "ready"
+        | "served"
+        | "delivered"
+        | "cancelled"
+      payment_status: "pending" | "completed" | "refunded" | "failed"
+      reservation_status: "pending" | "confirmed" | "cancelled" | "completed"
+      table_status: "available" | "reserved" | "occupied" | "unavailable"
       user_role:
         | "admin"
         | "director"
@@ -630,6 +682,24 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      delivery_status: [
+        "pending",
+        "assigned",
+        "in_progress",
+        "delivered",
+        "cancelled",
+      ],
+      order_status: [
+        "pending",
+        "preparing",
+        "ready",
+        "served",
+        "delivered",
+        "cancelled",
+      ],
+      payment_status: ["pending", "completed", "refunded", "failed"],
+      reservation_status: ["pending", "confirmed", "cancelled", "completed"],
+      table_status: ["available", "reserved", "occupied", "unavailable"],
       user_role: ["admin", "director", "chef", "waiter", "cashier", "delivery"],
     },
   },

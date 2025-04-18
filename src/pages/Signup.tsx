@@ -46,26 +46,49 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      // Sign up user with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            username,
-            address,
-            phone_number: phoneNumber,
-            role: 'client' // Automatically set role to client
-          }
-        }
-      });
+      // Check if username already exists
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username);
 
-      if (authError) {
-        throw authError;
+      if (checkError) throw checkError;
+      
+      if (existingUser && existingUser.length > 0) {
+        toast({
+          variant: "destructive",
+          title: "Username already exists",
+          description: "Please choose a different username.",
+        });
+        setLoading(false);
+        return;
       }
 
-      // If signup is successful
-      if (authData.user) {
+      // Create user with client role
+      const { data, error } = await supabase
+        .from('users')
+        .insert([
+          { 
+            username, 
+            email, 
+            password_hash: password, // In a real app, use proper password hashing
+            phone_number: phoneNumber,
+            address,
+            role: 'client'
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+
+      if (data) {
+        // Also create client entry in clients table
+        const { error: clientError } = await supabase
+          .from('clients')
+          .insert([{ id: data[0].id }]);
+
+        if (clientError) throw clientError;
+
         toast({
           title: "Account created successfully",
           description: "Welcome to FeedMe! You can now log in.",

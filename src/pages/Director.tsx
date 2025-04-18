@@ -1,25 +1,11 @@
-
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
   UtensilsCrossed,
   Users,
   FileText,
-  Package,
-  TrendingUp,
-  CreditCard,
-  ChevronRight,
-  Calendar,
-  Clock,
-  Thermometer,
-  CheckCircle,
-  AlertCircle,
-  Building,
   Plus,
-  Edit,
-  Trash2,
+  Building,
   Send,
   RefreshCcw
 } from "lucide-react";
@@ -38,19 +24,6 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Legend,
-} from "recharts";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -73,210 +46,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// IoT Status Card Component
-const IoTStatusCard = ({ title, value, status, unit, icon: Icon }: any) => {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium">{title}</CardTitle>
-          <Icon className={`h-4 w-4 ${status === 'normal' ? 'text-green-500' : 'text-yellow-500'}`} />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}{unit}</div>
-        <p className="text-xs text-muted-foreground">
-          Status: {status === 'normal' ? 
-            <span className="text-green-500">Normal</span> : 
-            <span className="text-yellow-500">Attention</span>}
-        </p>
-      </CardContent>
-    </Card>
-  );
-};
-
-// Order summary component
-const OrderSummary = ({ orders }: { orders: any[] }) => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Orders</CardTitle>
-        <CardDescription>
-          Last 5 orders from the restaurant
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {orders.length > 0 ? orders.map((order) => (
-            <div key={order.id} className="flex items-center justify-between pb-4 border-b last:border-0">
-              <div>
-                <div className="font-medium">Order #{order.id.substring(0, 8)}</div>
-                <div className="text-sm text-gray-500">Table {order.table_number || 'Takeaway'}</div>
-                <div className="text-xs text-gray-400 flex items-center mt-1">
-                  <Clock className="h-3 w-3 mr-1" />
-                  {new Date(order.created_at).toLocaleString()}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="font-medium">${order.total_amount.toFixed(2)}</div>
-                <div className="text-sm text-gray-500">{order.status}</div>
-              </div>
-            </div>
-          )) : (
-            <div className="text-center py-4 text-gray-500">No recent orders</div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// Stats Card component
-const StatCard = ({ title, value, icon: Icon, trend, description }: any) => {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div className="p-2 bg-primary/10 rounded-md">
-          <Icon className="h-5 w-5 text-primary" />
-        </div>
-        {trend && (
-          <div className={`text-xs flex items-center ${trend.isPositive ? "text-green-600" : "text-red-600"}`}>
-            <span>{trend.value}%</span>
-            <TrendingUp className={`h-3 w-3 ml-1 ${!trend.isPositive && "rotate-180"}`} />
-          </div>
-        )}
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground mt-1">{title}</p>
-        {description && <p className="text-xs text-muted-foreground mt-2">{description}</p>}
-      </CardContent>
-    </Card>
-  );
-};
-
-// Daily dish component for menu creation
-const DailyDishItem = ({ dish, ingredients, onQuantityChange, selectedQuantity = 0 }: any) => {
-  // Calculate cost based on ingredients
-  const calculateCost = () => {
-    if (!dish.ingredients) return 0;
-    
-    return dish.ingredients.reduce((total: number, item: any) => {
-      const ingredient = ingredients.find((ing: any) => ing.id === item.ingredient_id);
-      if (ingredient) {
-        return total + (ingredient.price_per_unit * item.quantity_needed * selectedQuantity);
-      }
-      return total;
-    }, 0);
-  };
-
-  const cost = calculateCost();
-
-  return (
-    <div className="flex items-center justify-between p-4 border-b last:border-0">
-      <div className="flex items-center">
-        {dish.image_url && (
-          <img 
-            src={dish.image_url} 
-            alt={dish.name} 
-            className="w-12 h-12 object-cover rounded-md mr-4"
-          />
-        )}
-        <div>
-          <div className="font-medium">{dish.name}</div>
-          <div className="text-sm text-gray-500">{dish.category}</div>
-          <div className="text-xs text-gray-400">${dish.price.toFixed(2)}</div>
-        </div>
-      </div>
-      <div className="flex items-center space-x-4">
-        <div>
-          <div className="text-sm text-gray-500">Cost: <span className="font-medium">${cost.toFixed(2)}</span></div>
-          <div className="text-xs text-gray-400">For {selectedQuantity} units</div>
-        </div>
-        <div className="flex items-center space-x-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onQuantityChange(dish.id, Math.max(0, selectedQuantity - 1))}
-            disabled={selectedQuantity <= 0}
-          >
-            -
-          </Button>
-          <Input 
-            type="number" 
-            min="0"
-            value={selectedQuantity}
-            onChange={(e) => onQuantityChange(dish.id, parseInt(e.target.value) || 0)}
-            className="w-16 text-center h-8"
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onQuantityChange(dish.id, selectedQuantity + 1)}
-          >
-            +
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Employee Item component
-const EmployeeItem = ({ employee, onEdit, onDelete }: any) => {
-  return (
-    <div className="flex items-center justify-between p-4 border-b last:border-0">
-      <div>
-        <div className="font-medium">{employee.first_name} {employee.last_name}</div>
-        <div className="text-sm text-gray-500">{employee.role}</div>
-        <div className="text-xs text-gray-400">Hired: {new Date(employee.hire_date).toLocaleDateString()}</div>
-      </div>
-      <div className="flex items-center space-x-2">
-        <Button variant="ghost" size="sm" onClick={() => onEdit(employee)}>
-          <Edit className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="sm" className="text-red-500" onClick={() => onDelete(employee)}>
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-// Report Item component
-const ReportItem = ({ report, onView, onEdit, onSend }: any) => {
-  return (
-    <div className="flex items-center justify-between p-4 border-b last:border-0">
-      <div>
-        <div className="font-medium">{report.title}</div>
-        <div className="text-sm text-gray-500">{new Date(report.date).toLocaleDateString()}</div>
-        <div className="text-xs flex items-center mt-1">
-          <span className={`px-2 py-0.5 rounded-full text-xs ${
-            report.sent_to_admin ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-          }`}>
-            {report.sent_to_admin ? 'Sent' : 'Draft'}
-          </span>
-        </div>
-      </div>
-      <div className="flex items-center space-x-2">
-        <Button variant="ghost" size="sm" onClick={() => onView(report)}>
-          View
-        </Button>
-        {!report.sent_to_admin && (
-          <>
-            <Button variant="ghost" size="sm" onClick={() => onEdit(report)}>
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="text-blue-500" onClick={() => onSend(report)}>
-              <Send className="h-4 w-4" />
-            </Button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
+import { DirectorOverview } from "@/components/director/DirectorOverview";
+import { DailyDishItem } from "@/components/director/DailyDishItem";
+import { EmployeeItem } from "@/components/director/EmployeeItem";
+import { ReportItem } from "@/components/director/ReportItem";
 
 const DirectorPage = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -292,24 +65,20 @@ const DirectorPage = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // IoT states
   const [ovenTemperature, setOvenTemperature] = useState(180);
   const [coolingTemperature, setCoolingTemperature] = useState(-4);
   const [isUpdatingTemperature, setIsUpdatingTemperature] = useState(false);
 
-  // Dialog states
   const [isDailyMenuDialogOpen, setIsDailyMenuDialogOpen] = useState(false);
   const [isEmployeeDialogOpen, setIsEmployeeDialogOpen] = useState(false);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [isViewReportDialogOpen, setIsViewReportDialogOpen] = useState(false);
 
-  // Form states
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedDishes, setSelectedDishes] = useState<Record<string, number>>({});
   const [currentEmployee, setCurrentEmployee] = useState<any>(null);
   const [currentReport, setCurrentReport] = useState<any>(null);
   
-  // Employee form state
   const [employeeForm, setEmployeeForm] = useState({
     first_name: '',
     last_name: '',
@@ -318,14 +87,12 @@ const DirectorPage = () => {
     salary: '',
   });
 
-  // Report form state
   const [reportForm, setReportForm] = useState({
     title: '',
     content: '',
     date: new Date().toISOString().split('T')[0],
   });
 
-  // Fetch data when the component mounts
   useEffect(() => {
     if (!user) {
       navigate('/login');
@@ -345,7 +112,6 @@ const DirectorPage = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Get director data
         const { data: directorData, error: directorError } = await supabase
           .from('directors')
           .select('*, restaurant:restaurants(*)')
@@ -357,7 +123,6 @@ const DirectorPage = () => {
         if (directorData && directorData.restaurant) {
           setRestaurant(directorData.restaurant);
 
-          // Get restaurant employees
           const { data: employeeData, error: employeeError } = await supabase
             .from('employees')
             .select('*')
@@ -366,7 +131,6 @@ const DirectorPage = () => {
           if (employeeError) throw employeeError;
           setEmployees(employeeData || []);
 
-          // Get dishes with ingredients
           const { data: dishData, error: dishError } = await supabase
             .from('dishes')
             .select(`
@@ -381,7 +145,6 @@ const DirectorPage = () => {
           if (dishError) throw dishError;
           setDishes(dishData || []);
 
-          // Get ingredients
           const { data: ingredientData, error: ingredientError } = await supabase
             .from('ingredients')
             .select('*');
@@ -389,7 +152,6 @@ const DirectorPage = () => {
           if (ingredientError) throw ingredientError;
           setIngredients(ingredientData || []);
 
-          // Get daily menus
           const { data: menuData, error: menuError } = await supabase
             .from('daily_menus')
             .select(`
@@ -405,7 +167,6 @@ const DirectorPage = () => {
           if (menuError) throw menuError;
           setDailyMenus(menuData || []);
 
-          // Get reports
           const { data: reportData, error: reportError } = await supabase
             .from('reports')
             .select('*')
@@ -415,7 +176,6 @@ const DirectorPage = () => {
           if (reportError) throw reportError;
           setReports(reportData || []);
 
-          // Get orders
           const { data: orderData, error: orderError } = await supabase
             .from('orders')
             .select('*')
@@ -426,7 +186,6 @@ const DirectorPage = () => {
           if (orderError) throw orderError;
           setOrders(orderData || []);
 
-          // Simulate getting IoT data
           const { data: iotData, error: iotError } = await supabase
             .from('restaurants')
             .select('oven_temperature, cooling_chamber_temperature')
@@ -461,10 +220,8 @@ const DirectorPage = () => {
     });
   };
 
-  // Create a new daily menu
   const handleCreateDailyMenu = async () => {
     try {
-      // Check if menu already exists for this date
       const existingMenu = dailyMenus.find(menu => menu.date === selectedDate);
       
       let menuId;
@@ -472,13 +229,11 @@ const DirectorPage = () => {
       if (existingMenu) {
         menuId = existingMenu.id;
         
-        // Delete existing daily dishes for this menu
         await supabase
           .from('daily_dishes')
           .delete()
           .eq('daily_menu_id', menuId);
       } else {
-        // Create new daily menu
         const { data: menuData, error: menuError } = await supabase
           .from('daily_menus')
           .insert([
@@ -494,7 +249,6 @@ const DirectorPage = () => {
         menuId = menuData[0].id;
       }
       
-      // Add dishes to the daily menu
       const dishesArray = Object.entries(selectedDishes)
         .filter(([_, quantity]) => quantity > 0)
         .map(([dishId, quantity]) => ({
@@ -511,7 +265,6 @@ const DirectorPage = () => {
         if (dishError) throw dishError;
       }
       
-      // Refresh daily menus
       const { data: newMenus, error: refreshError } = await supabase
         .from('daily_menus')
         .select(`
@@ -544,7 +297,6 @@ const DirectorPage = () => {
     }
   };
 
-  // Update dish quantity for daily menu
   const handleDishQuantityChange = (dishId: string, quantity: number) => {
     setSelectedDishes(prev => ({
       ...prev,
@@ -552,19 +304,17 @@ const DirectorPage = () => {
     }));
   };
 
-  // Create or update an employee
   const handleEmployeeSubmit = async () => {
     try {
       const userData = {
         username: `${employeeForm.first_name.toLowerCase()}.${employeeForm.last_name.toLowerCase()}`,
         email: `${employeeForm.first_name.toLowerCase()}.${employeeForm.last_name.toLowerCase()}@feedme.com`,
-        password_hash: employeeForm.first_name.toLowerCase(), // Simple password for demo
+        password_hash: employeeForm.first_name.toLowerCase(),
         role: employeeForm.role,
         phone_number: employeeForm.phone
       };
 
       if (currentEmployee) {
-        // Update existing employee
         const { error: updateError } = await supabase
           .from('employees')
           .update({
@@ -583,13 +333,12 @@ const DirectorPage = () => {
           description: `${employeeForm.first_name} ${employeeForm.last_name}'s information has been updated.`,
         });
       } else {
-        // Create new user first
         const { data: userData, error: userError } = await supabase
           .from('users')
           .insert([{
             username: `${employeeForm.first_name.toLowerCase()}.${employeeForm.last_name.toLowerCase()}`,
             email: `${employeeForm.first_name.toLowerCase()}.${employeeForm.last_name.toLowerCase()}@feedme.com`,
-            password_hash: employeeForm.first_name.toLowerCase(), // Simple password for demo
+            password_hash: employeeForm.first_name.toLowerCase(),
             role: employeeForm.role,
             phone_number: employeeForm.phone
           }])
@@ -597,7 +346,6 @@ const DirectorPage = () => {
 
         if (userError) throw userError;
         
-        // Then create employee record
         const { error: employeeError } = await supabase
           .from('employees')
           .insert([{
@@ -618,7 +366,6 @@ const DirectorPage = () => {
         });
       }
 
-      // Refresh employees
       const { data: refreshData, error: refreshError } = await supabase
         .from('employees')
         .select('*')
@@ -646,7 +393,6 @@ const DirectorPage = () => {
     }
   };
 
-  // Delete an employee
   const handleDeleteEmployee = async (employee: any) => {
     if (confirm(`Are you sure you want to remove ${employee.first_name} ${employee.last_name}?`)) {
       try {
@@ -657,15 +403,11 @@ const DirectorPage = () => {
 
         if (error) throw error;
 
-        // Also delete user if needed
-        // For this demo, we'll leave the user record intact
-
         toast({
           title: "Employee removed",
           description: `${employee.first_name} ${employee.last_name} has been removed.`,
         });
 
-        // Update employees list
         setEmployees(employees.filter(e => e.id !== employee.id));
       } catch (error) {
         console.error('Error removing employee:', error);
@@ -678,7 +420,6 @@ const DirectorPage = () => {
     }
   };
 
-  // Edit an employee
   const handleEditEmployee = (employee: any) => {
     setCurrentEmployee(employee);
     setEmployeeForm({
@@ -691,11 +432,9 @@ const DirectorPage = () => {
     setIsEmployeeDialogOpen(true);
   };
 
-  // Create or update a report
   const handleReportSubmit = async () => {
     try {
       if (currentReport) {
-        // Update existing report
         const { error } = await supabase
           .from('reports')
           .update({
@@ -713,7 +452,6 @@ const DirectorPage = () => {
           description: "Your report has been updated successfully.",
         });
       } else {
-        // Create new report
         const { error } = await supabase
           .from('reports')
           .insert([{
@@ -734,7 +472,6 @@ const DirectorPage = () => {
         });
       }
 
-      // Refresh reports
       const { data, error: refreshError } = await supabase
         .from('reports')
         .select('*')
@@ -761,7 +498,6 @@ const DirectorPage = () => {
     }
   };
 
-  // Send a report to admin
   const handleSendReport = async (report: any) => {
     try {
       const { error } = await supabase
@@ -780,7 +516,6 @@ const DirectorPage = () => {
         description: "Your report has been sent to the admin.",
       });
 
-      // Update in the UI
       setReports(reports.map(r => 
         r.id === report.id ? { ...r, sent_to_admin: true, status: 'sent' } : r
       ));
@@ -794,13 +529,11 @@ const DirectorPage = () => {
     }
   };
 
-  // View a report
   const handleViewReport = (report: any) => {
     setCurrentReport(report);
     setIsViewReportDialogOpen(true);
   };
 
-  // Edit a report
   const handleEditReport = (report: any) => {
     setCurrentReport(report);
     setReportForm({
@@ -811,15 +544,12 @@ const DirectorPage = () => {
     setIsReportDialogOpen(true);
   };
 
-  // Refresh IoT data
   const handleRefreshIoT = async () => {
     setIsUpdatingTemperature(true);
     try {
-      // Simulate getting new readings with slight variations
       const newOvenTemp = Math.floor(ovenTemperature + (Math.random() * 10 - 5));
       const newCoolingTemp = Math.round((coolingTemperature + (Math.random() * 2 - 1)) * 10) / 10;
       
-      // Update in database
       const { error } = await supabase
         .from('restaurants')
         .update({
@@ -849,10 +579,7 @@ const DirectorPage = () => {
     }
   };
 
-  // Sales data for the chart
   const getSalesData = () => {
-    // In a real app, this would come from the database
-    // Here, we'll generate some random data based on orders
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return days.map(day => ({
       name: day,
@@ -860,18 +587,15 @@ const DirectorPage = () => {
     }));
   };
 
-  // Category data for the chart
   const getCategoryData = () => {
     const categoryCounts: Record<string, number> = {};
     
-    // Count dishes by category
     dishes.forEach(dish => {
       if (dish.category) {
         categoryCounts[dish.category] = (categoryCounts[dish.category] || 0) + 1;
       }
     });
     
-    // Convert to array format for chart
     return Object.entries(categoryCounts).map(([name, value]) => ({
       name,
       value
@@ -951,136 +675,20 @@ const DirectorPage = () => {
             </p>
           </div>
 
-          {/* OVERVIEW TAB */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard 
-                title="Today's Revenue" 
-                value={`$${(orders.reduce((sum, order) => sum + (order.total_amount || 0), 0)).toFixed(2)}`}
-                icon={CreditCard}
-                trend={{ value: 12.5, isPositive: true }}
-                description="Based on today's orders"
-              />
-              <StatCard 
-                title="Total Orders" 
-                value={orders.length}
-                icon={Package}
-                trend={{ value: 8.2, isPositive: true }}
-              />
-              <StatCard 
-                title="Total Employees" 
-                value={employees.length}
-                icon={Users}
-              />
-              <StatCard 
-                title="Most Popular Dish" 
-                value={dishes.length > 0 ? dishes[0].name : "No dishes"}
-                icon={UtensilsCrossed}
-                description="Based on today's orders"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle>Weekly Sales</CardTitle>
-                  <CardDescription>Revenue overview for the past week</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={getSalesData()} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <Tooltip />
-                        <Area type="monotone" dataKey="value" stroke="#8884d8" fillOpacity={1} fill="url(#colorValue)" />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <OrderSummary orders={orders} />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Category Distribution</CardTitle>
-                  <CardDescription>Dishes by category</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={getCategoryData()}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="value" fill="#8884d8" name="Dishes" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <div>
-                    <CardTitle>IoT Monitoring</CardTitle>
-                    <CardDescription>Real-time temperature tracking</CardDescription>
-                  </div>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={handleRefreshIoT} 
-                    disabled={isUpdatingTemperature}
-                  >
-                    <RefreshCcw className={`h-4 w-4 mr-2 ${isUpdatingTemperature ? 'animate-spin' : ''}`} />
-                    Refresh
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 gap-4">
-                    <IoTStatusCard
-                      title="Kitchen Ovens"
-                      value={ovenTemperature}
-                      unit="°C"
-                      status={ovenTemperature > 200 || ovenTemperature < 160 ? 'warning' : 'normal'}
-                      icon={Thermometer}
-                    />
-                    <IoTStatusCard
-                      title="Cooling Chamber"
-                      value={coolingTemperature}
-                      unit="°C"
-                      status={coolingTemperature > -2 || coolingTemperature < -8 ? 'warning' : 'normal'}
-                      icon={Thermometer}
-                    />
-                    <div className="mt-2 text-xs text-gray-500">
-                      <p className="flex items-center mb-1">
-                        <CheckCircle className="h-3 w-3 text-green-500 mr-1" />
-                        <span>Normal range for ovens: 160°C - 200°C</span>
-                      </p>
-                      <p className="flex items-center">
-                        <CheckCircle className="h-3 w-3 text-green-500 mr-1" />
-                        <span>Normal range for cooling: -8°C - -2°C</span>
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+          <TabsContent value="overview">
+            <DirectorOverview 
+              salesData={getSalesData()}
+              categoryData={getCategoryData()}
+              orders={orders}
+              employees={employees}
+              dishes={dishes}
+              ovenTemperature={ovenTemperature}
+              coolingTemperature={coolingTemperature}
+              isUpdatingTemperature={isUpdatingTemperature}
+              onRefreshIoT={handleRefreshIoT}
+            />
           </TabsContent>
 
-          {/* DAILY MENU TAB */}
           <TabsContent value="menu" className="space-y-4">
             <Card>
               <CardHeader>
@@ -1143,7 +751,6 @@ const DirectorPage = () => {
                         </CardContent>
                         <CardFooter className="flex justify-end">
                           <Button variant="outline" size="sm" onClick={() => {
-                            // Pre-fill form for editing
                             const dishQuantities: Record<string, number> = {};
                             menu.daily_dishes.forEach((dailyDish: any) => {
                               dishQuantities[dailyDish.dish_id] = dailyDish.available_quantity;
@@ -1231,7 +838,6 @@ const DirectorPage = () => {
             </div>
           </TabsContent>
 
-          {/* GRH TAB */}
           <TabsContent value="grh" className="space-y-4">
             <Card>
               <CardHeader>
@@ -1281,7 +887,6 @@ const DirectorPage = () => {
             </Card>
           </TabsContent>
 
-          {/* REPORTS TAB */}
           <TabsContent value="reports" className="space-y-4">
             <Card>
               <CardHeader>
@@ -1332,7 +937,6 @@ const DirectorPage = () => {
         </Tabs>
       </main>
 
-      {/* Daily Menu Dialog */}
       <Dialog open={isDailyMenuDialogOpen} onOpenChange={setIsDailyMenuDialogOpen}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -1383,7 +987,6 @@ const DirectorPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Employee Dialog */}
       <Dialog open={isEmployeeDialogOpen} onOpenChange={setIsEmployeeDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -1471,7 +1074,6 @@ const DirectorPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Report Dialog */}
       <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -1530,7 +1132,6 @@ const DirectorPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* View Report Dialog */}
       <Dialog open={isViewReportDialogOpen} onOpenChange={setIsViewReportDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>

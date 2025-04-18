@@ -1,123 +1,66 @@
 
-import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import MainLayout from "./components/layout/MainLayout";
+import Landing from "./pages/Landing";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Chef from "./pages/Chef";
+import Director from "./pages/Director";
+import Cashier from "./pages/Cashier";
+import Customer from "./pages/Customer";
+import Dashboard from "./pages/Dashboard";
+import Restaurants from "./pages/Restaurants";
+import GRH from "./pages/GRH";
+import Menu from "./pages/Menu";
+import NotFound from "./pages/NotFound";
+import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
+import Emails from "./pages/Emails";
 
-// Main layouts and components
-import Login from "@/pages/Login";
-import Signup from "@/pages/Signup";
-import Dashboard from "@/pages/Dashboard";
-import GRH from "@/pages/GRH";
-import Director from "@/pages/Director";
-import Chef from "@/pages/Chef";
-import Cashier from "@/pages/Cashier";
-import Customer from "@/pages/Customer";
-import Restaurants from "@/pages/Restaurants";
-import Menu from "@/pages/Menu";
-import NotFound from "@/pages/NotFound";
-import MainLayout from "@/components/layout/MainLayout";
-import { AuthProvider } from "@/hooks/useAuth";
-import "./App.css";
+const queryClient = new QueryClient();
 
-// Protected route component
-const ProtectedRoute = ({ children, requiredRole }: { children: JSX.Element, requiredRole?: string }) => {
-  const storedUser = localStorage.getItem('user');
-  const user = storedUser ? JSON.parse(storedUser) : null;
-  
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  if (requiredRole && user.role !== requiredRole) {
-    // Redirect to appropriate dashboard based on role
-    switch (user.role) {
-      case 'admin':
-        return <Navigate to="/admin" replace />;
-      case 'director':
-        return <Navigate to="/director" replace />;
-      case 'chef':
-        return <Navigate to="/chef" replace />;
-      case 'cashier':
-        return <Navigate to="/cashier" replace />;
-      case 'client':
-        return <Navigate to="/customer" replace />;
-      default:
-        return <Navigate to="/" replace />;
-    }
-  }
-  
-  return children;
-};
-
-function App() {
-  return (
-    <Router>
-      <AuthProvider>
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
         <Routes>
           {/* Public routes */}
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/" element={<Navigate to="/login" replace />} />
           
-          {/* Admin routes */}
-          <Route path="/admin" element={
-            <ProtectedRoute requiredRole="admin">
-              <MainLayout>
-                <Dashboard />
-              </MainLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/grh" element={
-            <ProtectedRoute requiredRole="admin">
-              <MainLayout>
-                <GRH />
-              </MainLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/restaurants" element={
-            <ProtectedRoute requiredRole="admin">
-              <MainLayout>
-                <Restaurants />
-              </MainLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/menu" element={
-            <ProtectedRoute requiredRole="admin">
-              <MainLayout>
-                <Menu />
-              </MainLayout>
-            </ProtectedRoute>
-          } />
+          {/* Chef route (no header/footer) */}
+          <Route path="/chef" element={<Chef />} />
           
-          {/* Role-specific routes */}
-          <Route path="/director" element={
-            <ProtectedRoute requiredRole="director">
-              <Director />
-            </ProtectedRoute>
-          } />
-          <Route path="/chef" element={
-            <ProtectedRoute requiredRole="chef">
-              <Chef />
-            </ProtectedRoute>
-          } />
-          <Route path="/cashier" element={
-            <ProtectedRoute requiredRole="cashier">
-              <Cashier />
-            </ProtectedRoute>
-          } />
-          <Route path="/customer" element={
-            <ProtectedRoute requiredRole="client">
-              <Customer />
-            </ProtectedRoute>
-          } />
+          {/* Director route (custom layout) */}
+          <Route path="/director" element={<Director />} />
           
-          {/* 404 Page */}
+          {/* Cashier route (custom layout) */}
+          <Route path="/cashier" element={<Cashier />} />
+          
+          {/* Customer route (custom layout) */}
+          <Route path="/customer" element={<Customer />} />
+          
+          {/* Admin routes with MainLayout */}
+          <Route path="/admin" element={<MainLayout><Dashboard /></MainLayout>} />
+          <Route path="/restaurants" element={<MainLayout><Restaurants /></MainLayout>} />
+          <Route path="/grh" element={<MainLayout><GRH /></MainLayout>} />
+          <Route path="/menu" element={<MainLayout><Menu /></MainLayout>} />
+          <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
+          <Route path="/profile" element={<MainLayout><Profile /></MainLayout>} />
+          <Route path="/emails/:id?" element={<MainLayout><Emails /></MainLayout>} />
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
-        <Toaster />
-      </AuthProvider>
-    </Router>
-  );
-}
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;

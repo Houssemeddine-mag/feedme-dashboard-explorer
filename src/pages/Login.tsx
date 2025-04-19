@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,17 +25,27 @@ const Login = () => {
     setLoading(true);
 
     try {
+      // First check if the username exists and get the user data
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('username', username)
         .single();
 
+      // Log to debug
+      console.log("User data query result:", userData, userError);
+
       if (userError) {
-        console.error("Login error:", userError);
-        throw new Error("Invalid username or password");
+        // If the user doesn't exist, show a user-friendly message
+        if (userError.code === 'PGRST116') {
+          throw new Error("User not found. Please check your username or create an account.");
+        } else {
+          console.error("Login error:", userError);
+          throw new Error("An error occurred while logging in. Please try again.");
+        }
       }
 
+      // Check if the password matches
       if (userData && userData.password_hash === password) {
         // Store user data in auth context
         login(userData);

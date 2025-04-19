@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -15,6 +14,7 @@ import Customer from "@/pages/Customer";
 import Restaurants from "@/pages/Restaurants";
 import Menu from "@/pages/Menu";
 import NotFound from "@/pages/NotFound";
+import Landing from "@/pages/Landing";
 import MainLayout from "@/components/layout/MainLayout";
 import { AuthProvider } from "@/hooks/useAuth";
 import "./App.css";
@@ -57,7 +57,8 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/landing" element={<Landing />} />
+          <Route path="/" element={<Navigate to="/landing" replace />} />
           
           {/* Admin routes */}
           <Route path="/admin" element={

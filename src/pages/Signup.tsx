@@ -52,7 +52,7 @@ const Signup = () => {
         .eq('username', username)
         .single();
 
-      if (checkError && checkError.code !== 'PGRST116') throw checkError; // PGRST116 means no rows returned
+      if (checkError && checkError.code !== 'PGRST116') throw checkError;
       
       if (existingUser) {
         toast({
@@ -67,24 +67,20 @@ const Signup = () => {
       // Create user with client role
       const { data, error } = await supabase
         .from('users')
-        .insert([
-          { 
-            username, 
-            email, 
-            password_hash: password, 
-            phone_number: phoneNumber,
-            address,
-            role: 'client' as UserRole
-          }
-        ])
-        .select();
+        .insert({
+          username,
+          email,
+          password_hash: password,
+          phone_number: phoneNumber,
+          address,
+          role: 'client' as const
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      // Optional: Create client in a separate table if needed
-      if (data && data.length > 0) {
-        // You might want to add more specific client creation logic here
-        
+      if (data) {
         toast({
           title: "Account created successfully",
           description: "Welcome to FeedMe! You can now log in.",

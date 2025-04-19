@@ -476,25 +476,31 @@ export type Database = {
       restaurants: {
         Row: {
           address: string | null
+          cooling_chamber_temperature: number | null
           created_at: string
           id: string
           name: string
+          oven_temperature: number | null
           phone: string | null
           updated_at: string
         }
         Insert: {
           address?: string | null
+          cooling_chamber_temperature?: number | null
           created_at?: string
           id?: string
           name: string
+          oven_temperature?: number | null
           phone?: string | null
           updated_at?: string
         }
         Update: {
           address?: string | null
+          cooling_chamber_temperature?: number | null
           created_at?: string
           id?: string
           name?: string
+          oven_temperature?: number | null
           phone?: string | null
           updated_at?: string
         }
@@ -567,6 +573,7 @@ export type Database = {
         | "waiter"
         | "cashier"
         | "delivery"
+        | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -700,7 +707,15 @@ export const Constants = {
       payment_status: ["pending", "completed", "refunded", "failed"],
       reservation_status: ["pending", "confirmed", "cancelled", "completed"],
       table_status: ["available", "reserved", "occupied", "unavailable"],
-      user_role: ["admin", "director", "chef", "waiter", "cashier", "delivery"],
+      user_role: [
+        "admin",
+        "director",
+        "chef",
+        "waiter",
+        "cashier",
+        "delivery",
+        "client",
+      ],
     },
   },
 } as const

@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -9,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import FeedMeLogo from "@/components/FeedMeLogo";
+import { UserRole } from "@/types/database";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -21,69 +21,56 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Handle demo logins
-    if (email === "admin" && password === "admin") {
-      toast({
-        title: "Admin login successful",
-        description: "Welcome to the admin dashboard.",
-      });
-      navigate("/admin");
-      return;
-    } else if (email === "chef" && password === "chef") {
-      toast({
-        title: "Chef login successful",
-        description: "Welcome to the kitchen dashboard.",
-      });
-      navigate("/chef");
-      return;
-    } else if (email === "director" && password === "director") {
-      toast({
-        title: "Director login successful",
-        description: "Welcome to the director dashboard.",
-      });
-      navigate("/director");
-      return;
-    } else if (email === "cashier" && password === "cashier") {
-      toast({
-        title: "Cashier login successful",
-        description: "Welcome to the cashier dashboard.",
-      });
-      navigate("/cashier");
-      return;
-    } else if (email === "customer" && password === "customer") {
-      toast({
-        title: "Customer login successful",
-        description: "Welcome to HoussemHouse restaurant.",
-      });
-      navigate("/customer");
-      return;
-    }
-
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', email)
+        .single();
 
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Login failed",
-          description: error.message,
-        });
-      } else {
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
-        navigate("/admin");
+      if (userError) {
+        console.error("Login error:", userError);
+        throw new Error("Invalid username or password");
       }
-    } catch (error) {
+
+      if (userData && userData.password_hash === password) {
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        toast({
+          title: `${userData.role.charAt(0).toUpperCase() + userData.role.slice(1)} login successful`,
+          description: `Welcome to the ${userData.role} dashboard.`,
+        });
+
+        // Redirect based on role
+        switch(userData.role as UserRole) {
+          case 'admin':
+            navigate("/admin");
+            break;
+          case 'director':
+            navigate("/director");
+            break;
+          case 'chef':
+            navigate("/chef");
+            break;
+          case 'cashier':
+            navigate("/cashier");
+            break;
+          case 'client':
+            navigate("/customer");
+            break;
+          default:
+            navigate("/");
+        }
+        return;
+      } else {
+        throw new Error("Invalid username or password");
+      }
+    } catch (error: any) {
       console.error("Login error:", error);
       toast({
         variant: "destructive",
-        title: "An error occurred",
-        description: "Please try again later.",
+        title: "Login failed",
+        description: error.message || "Invalid username or password",
       });
     } finally {
       setLoading(false);
@@ -128,7 +115,7 @@ const Login = () => {
         >
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>
-              <Label htmlFor="email">Email or Username</Label>
+              <Label htmlFor="email">Username</Label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-gray-400" />
@@ -218,8 +205,7 @@ const Login = () => {
               </div>
               <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
                 <p className="text-sm text-gray-700 mb-1 font-medium">Customer Access:</p>
-                <p className="text-sm text-gray-600">Username: <span className="font-mono bg-gray-100 px-2 py-1 rounded">customer</span></p>
-                <p className="text-sm text-gray-600">Password: <span className="font-mono bg-gray-100 px-2 py-1 rounded">customer</span></p>
+                <p className="text-sm text-gray-600">Sign up for a new account with the "client" role.</p>
               </div>
             </div>
           </div>

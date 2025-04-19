@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -9,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import FeedMeLogo from "@/components/FeedMeLogo";
+import { UserRole } from "@/types/database";
 
 const Signup = () => {
   const [username, setUsername] = useState("");
@@ -24,7 +24,6 @@ const Signup = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate inputs
     if (password !== confirmPassword) {
       toast({
         variant: "destructive",
@@ -46,26 +45,46 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      // Sign up user with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            username,
-            address,
-            phone_number: phoneNumber,
-            role: 'client' // Automatically set role to client
-          }
-        }
-      });
+      // Check if username already exists
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .single();
 
-      if (authError) {
-        throw authError;
+      if (checkError && checkError.code !== 'PGRST116') throw checkError; // PGRST116 means no rows returned
+      
+      if (existingUser) {
+        toast({
+          variant: "destructive",
+          title: "Username already exists",
+          description: "Please choose a different username.",
+        });
+        setLoading(false);
+        return;
       }
 
-      // If signup is successful
-      if (authData.user) {
+      // Create user with client role
+      const { data, error } = await supabase
+        .from('users')
+        .insert([
+          { 
+            username, 
+            email, 
+            password_hash: password, 
+            phone_number: phoneNumber,
+            address,
+            role: 'client' as UserRole
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+
+      // Optional: Create client in a separate table if needed
+      if (data && data.length > 0) {
+        // You might want to add more specific client creation logic here
+        
         toast({
           title: "Account created successfully",
           description: "Welcome to FeedMe! You can now log in.",
@@ -75,7 +94,6 @@ const Signup = () => {
     } catch (error: any) {
       console.error("Signup error:", error);
       
-      // More specific error handling
       const errorMessage = error.message || "An error occurred during signup";
       
       toast({

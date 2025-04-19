@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,13 +10,15 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import FeedMeLogo from "@/components/FeedMeLogo";
 import { UserRole } from "@/types/database";
+import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +28,7 @@ const Login = () => {
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
-        .eq('username', email)
+        .eq('username', username)
         .single();
 
       if (userError) {
@@ -34,7 +37,8 @@ const Login = () => {
       }
 
       if (userData && userData.password_hash === password) {
-        localStorage.setItem('user', JSON.stringify(userData));
+        // Store user data in auth context
+        login(userData);
         
         toast({
           title: `${userData.role.charAt(0).toUpperCase() + userData.role.slice(1)} login successful`,

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -16,15 +17,15 @@ import Menu from "@/pages/Menu";
 import NotFound from "@/pages/NotFound";
 import Landing from "@/pages/Landing";
 import MainLayout from "@/components/layout/MainLayout";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import "./App.css";
 
 // Protected route component
 const ProtectedRoute = ({ children, requiredRole }: { children: JSX.Element, requiredRole?: string }) => {
-  const storedUser = localStorage.getItem('user');
-  const user = storedUser ? JSON.parse(storedUser) : null;
+  const { user } = useAuth();
   
   if (!user) {
+    // Redirect to login if no user
     return <Navigate to="/login" replace />;
   }
   

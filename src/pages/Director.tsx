@@ -3,7 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DirectorOverview } from "@/components/director/DirectorOverview";
+import { DailyMenuSection } from "@/components/director/DailyMenuSection";
+import { HRSection } from "@/components/director/HRSection";
+import { ReportsSection } from "@/components/director/ReportsSection";
+import { PurchasesSection } from "@/components/director/PurchasesSection";
 import { Restaurant as RestaurantType } from "@/types/director";
 import { MainLayout } from "@/components/layout";
 
@@ -167,17 +172,45 @@ const Director = () => {
         </div>
 
         {selectedRestaurant ? (
-          <DirectorOverview
-            salesData={salesData}
-            categoryData={categoryData}
-            orders={orders}
-            employees={employees}
-            dishes={dishes}
-            ovenTemperature={ovenTemperature}
-            coolingTemperature={coolingTemperature}
-            isUpdatingTemperature={isUpdatingTemperature}
-            onRefreshIoT={handleRefreshIoT}
-          />
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="mb-4 w-full justify-start overflow-x-auto">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="daily-menu">Daily Menu</TabsTrigger>
+              <TabsTrigger value="hr">HR Management</TabsTrigger>
+              <TabsTrigger value="reports">Reports</TabsTrigger>
+              <TabsTrigger value="purchases">Ingredient Purchases</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="overview">
+              <DirectorOverview
+                salesData={salesData}
+                categoryData={categoryData}
+                orders={orders}
+                employees={employees}
+                dishes={dishes}
+                ovenTemperature={ovenTemperature}
+                coolingTemperature={coolingTemperature}
+                isUpdatingTemperature={isUpdatingTemperature}
+                onRefreshIoT={handleRefreshIoT}
+              />
+            </TabsContent>
+            
+            <TabsContent value="daily-menu">
+              <DailyMenuSection restaurantId={selectedRestaurant.id} />
+            </TabsContent>
+            
+            <TabsContent value="hr">
+              <HRSection restaurantId={selectedRestaurant.id} />
+            </TabsContent>
+            
+            <TabsContent value="reports">
+              <ReportsSection restaurantId={selectedRestaurant.id} />
+            </TabsContent>
+            
+            <TabsContent value="purchases">
+              <PurchasesSection restaurantId={selectedRestaurant.id} />
+            </TabsContent>
+          </Tabs>
         ) : (
           <div className="text-center py-12">
             <h3 className="text-xl">No restaurant selected</h3>

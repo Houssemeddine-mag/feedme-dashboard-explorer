@@ -150,8 +150,8 @@ export const DailyMenuSection = ({ restaurantId }: DailyMenuSectionProps) => {
   const handleSaveMenu = async () => {
     if (menuItems.length === 0) {
       toast({
-        variant: "warning",
-        title: "Warning",
+        variant: "destructive",
+        title: "Validation Error",
         description: "Please add at least one dish to the daily menu."
       });
       return;

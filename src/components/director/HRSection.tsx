@@ -10,20 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Users, Edit, Trash2 } from "lucide-react";
+import { Employee } from "@/types/director";
 
 interface HRSectionProps {
   restaurantId: string;
-}
-
-interface Employee {
-  id: string;
-  first_name: string;
-  last_name: string;
-  phone?: string;
-  role: 'chef' | 'waiter' | 'cashier' | 'delivery';
-  salary?: number;
-  hire_date: string;
-  restaurant_id: string;
 }
 
 interface EmployeeForm {
@@ -64,7 +54,13 @@ export const HRSection = ({ restaurantId }: HRSectionProps) => {
         .order('last_name', { ascending: true });
 
       if (error) throw error;
-      setEmployees(data || []);
+      
+      // Filter the data to ensure only compatible roles are added
+      const filteredData = (data || []).filter(emp => 
+        ['chef', 'waiter', 'cashier', 'delivery'].includes(emp.role)
+      ) as Employee[];
+      
+      setEmployees(filteredData);
     } catch (error) {
       console.error('Error fetching employees:', error);
       toast({
@@ -119,7 +115,7 @@ export const HRSection = ({ restaurantId }: HRSectionProps) => {
       first_name: employee.first_name,
       last_name: employee.last_name,
       phone: employee.phone || '',
-      role: employee.role,
+      role: employee.role as 'chef' | 'waiter' | 'cashier' | 'delivery',
       salary: employee.salary || 0
     });
     setIsDialogOpen(true);
@@ -247,6 +243,25 @@ export const HRSection = ({ restaurantId }: HRSectionProps) => {
     }
   ];
 
+  const renderEmployeeList = () => {
+    if (isLoading) {
+      return (
+        <div className="text-center py-8">
+          <p>Loading employees...</p>
+        </div>
+      );
+    }
+    
+    return (
+      <DataTable
+        data={employees}
+        columns={columns}
+        filterPlaceholder={`Search ${currentRole}s...`}
+        onSearchChange={() => {}}
+      />
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -271,13 +286,7 @@ export const HRSection = ({ restaurantId }: HRSectionProps) => {
           </TabsList>
           
           <TabsContent value={currentRole}>
-            <DataTable
-              data={employees}
-              columns={columns}
-              filterPlaceholder={`Search ${currentRole}s...`}
-              onSearchChange={() => {}}
-              isLoading={isLoading}
-            />
+            {renderEmployeeList()}
           </TabsContent>
         </Tabs>
         

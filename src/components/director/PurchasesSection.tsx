@@ -167,6 +167,25 @@ export const PurchasesSection = ({ restaurantId }: PurchasesSectionProps) => {
     }
   ];
 
+  const renderPurchaseList = () => {
+    if (isLoading) {
+      return (
+        <div className="text-center py-8">
+          <p>Loading purchases...</p>
+        </div>
+      );
+    }
+    
+    return (
+      <DataTable
+        data={purchases}
+        columns={purchaseColumns}
+        filterPlaceholder="Search purchases..."
+        onSearchChange={() => {}}
+      />
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -178,13 +197,7 @@ export const PurchasesSection = ({ restaurantId }: PurchasesSectionProps) => {
         </div>
       </CardHeader>
       <CardContent>
-        <DataTable
-          data={purchases}
-          columns={purchaseColumns}
-          filterPlaceholder="Search purchases..."
-          onSearchChange={() => {}}
-          isLoading={isLoading}
-        />
+        {renderPurchaseList()}
 
         {/* View Purchase Details Dialog */}
         <Dialog open={isViewPurchaseOpen} onOpenChange={setIsViewPurchaseOpen}>

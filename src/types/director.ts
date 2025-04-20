@@ -13,7 +13,7 @@ export interface Employee {
   id: string;
   first_name: string;
   last_name: string;
-  role: string;
+  role: 'admin' | 'director' | 'chef' | 'waiter' | 'cashier' | 'delivery' | 'client';
   phone?: string;
   salary?: number;
   hire_date: string;
